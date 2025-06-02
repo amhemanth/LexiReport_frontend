@@ -5,10 +5,13 @@ import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { ChangePasswordModal } from '@components/ChangePasswordModal';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { logout, user } = useAuth();
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -76,9 +79,7 @@ export default function ProfileScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
-            onPress={() => {
-              // TODO: Implement change password
-            }}
+            onPress={() => setShowChangePassword(true)}
           >
             <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
             <Text style={[styles.menuText, { color: colors.text }]}>
@@ -116,6 +117,11 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ChangePasswordModal
+        visible={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
     </ThemedView>
   );
 }

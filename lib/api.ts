@@ -84,7 +84,7 @@ export const login = async (loginData: LoginRequest): Promise<AuthResponse> => {
     formData.append('username', loginData.email);
     formData.append('password', loginData.password);
 
-    const response = await api.post<Token>('/auth/token', 
+    const response = await api.post<Token>('/auth/login', 
       formData.toString(),
       {
         headers: {
@@ -97,7 +97,7 @@ export const login = async (loginData: LoginRequest): Promise<AuthResponse> => {
     await AsyncStorage.setItem('token', access_token);
 
     // Get user info
-    const userResponse = await api.get<User>('/auth/me', {
+    const userResponse = await api.get<User>('/users/me', {
       headers: { 
         Authorization: `Bearer ${access_token}`,
         'Accept': 'application/json',
@@ -153,7 +153,7 @@ export const uploadReport = async (file: File, token: string): Promise<Report> =
     formData.append('file', file);
     formData.append('title', file.name);
     
-    const response = await api.post<Report>('/reports/', formData, {
+    const response = await api.post<Report>('/reports/upload', formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',
@@ -168,10 +168,11 @@ export const uploadReport = async (file: File, token: string): Promise<Report> =
   }
 };
 
-export const getReports = async (token: string): Promise<Report[]> => {
+export const getReports = async (token: string, page: number = 1, size: number = 10): Promise<{ items: Report[], total: number, page: number, size: number, pages: number }> => {
   try {
-    const response = await api.get<Report[]>('/reports/', {
-      headers: { Authorization: `Bearer ${token}` }
+    const response = await api.get('/reports/', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { page, size }
     });
     return response.data;
   } catch (error) {
@@ -196,14 +197,36 @@ export const getReport = async (id: number, token: string): Promise<Report> => {
   }
 };
 
-export const getReportInsights = async (id: number): Promise<ReportInsight[]> => {
+export const getReportInsights = async (id: number, token: string): Promise<ReportInsight[]> => {
   try {
-    const response = await api.get(`/reports/${id}/insights`);
+    const response = await api.get(`/reports/${id}/insights`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.detail || 'Failed to fetch report insights');
     }
     throw error;
+  }
+};
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export const changePassword = async (data: ChangePasswordRequest): Promise<void> => {
+  try {
+    await api.put('/users/me', {
+      current_password: data.current_password,
+      password: data.new_password
+    });
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.error('Change password error:', error.response?.data);
+      throw new Error(error.response?.data?.detail || 'Failed to change password');
+    }
+    throw new Error('Failed to change password');
   }
 }; 

@@ -1,12 +1,6 @@
 import { create } from 'zustand';
-import { api, logout as apiLogout } from '@lib/api';
-
-interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  is_active: boolean;
-}
+import { login as apiLogin, logout as apiLogout } from '@lib/api';
+import { User } from '@lib/types';
 
 interface AuthState {
   user: User | null;
@@ -25,14 +19,17 @@ export const useAuth = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.post('/auth/token', {
-        username: email,
-        password: password,
+      const response = await apiLogin({ email, password });
+      set({ 
+        user: response.user, 
+        token: response.access_token, 
+        isLoading: false 
       });
-      const { access_token, user } = response.data;
-      set({ user, token: access_token, isLoading: false });
     } catch (error) {
-      set({ error: 'Invalid credentials', isLoading: false });
+      set({ 
+        error: error instanceof Error ? error.message : 'Invalid credentials', 
+        isLoading: false 
+      });
     }
   },
   logout: async () => {

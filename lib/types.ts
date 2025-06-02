@@ -35,7 +35,8 @@ export interface Report {
   report_type: string;
   user_id: number;
   created_at: string;
-  insights: ReportInsight[];
+  updated_at: string;
+  insights?: ReportInsight[];
 }
 
 export interface ReportInsight {
@@ -44,4 +45,13 @@ export interface ReportInsight {
   content: string;
   insight_metadata: Record<string, any>;
   created_at: string;
+  updated_at: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
 } 
