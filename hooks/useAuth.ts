@@ -44,26 +44,30 @@ export const useAuth = create<AuthState>((set) => ({
   logout: async () => {
     try {
       set({ isLoading: true, error: null, success: null });
-      await apiLogout();
-      await AsyncStorage.removeItem('token');
+      // First clear the local state
       set({ 
         user: null, 
         token: null, 
         error: null,
         isLoading: false,
-        success: 'Logged out successfully'
+        success: null
       });
+      // Then remove the token from storage
+      await AsyncStorage.removeItem('token');
+      // Finally call the API logout
+      await apiLogout();
+      // Navigate to login
       router.replace('/(auth)/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Still clear the state even if the API call fails
+      // Even if the API call fails, ensure we clear everything
       await AsyncStorage.removeItem('token');
       set({ 
         user: null, 
         token: null, 
         error: null,
         isLoading: false,
-        success: 'Logged out successfully'
+        success: null
       });
       router.replace('/(auth)/login');
     }

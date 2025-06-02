@@ -6,6 +6,7 @@ import { Report } from '@lib/types';
 import { useTheme } from '@hooks/useTheme';
 import { ThemedView } from '@components/ThemedView';
 import { Header } from '@components/Header';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
@@ -29,14 +30,28 @@ export default function ReportsScreen() {
 
   const renderReportItem = ({ item }: { item: Report }) => (
     <TouchableOpacity
-      style={styles.reportItem}
+      style={[styles.reportItem, { backgroundColor: colors.card }]}
       onPress={() => router.push(`/(app)/report/${item.id}`)}
     >
-      <Text style={styles.reportTitle}>{item.title}</Text>
-      <Text style={styles.reportType}>{item.report_type}</Text>
-      <Text style={styles.reportDate}>
-        {new Date(item.created_at).toLocaleDateString()}
-      </Text>
+      <View style={styles.reportHeader}>
+        <View style={styles.reportIconContainer}>
+          <Ionicons name="document-text" size={24} color={colors.primary} />
+        </View>
+        <View style={styles.reportInfo}>
+          <Text style={[styles.reportTitle, { color: colors.text }]}>
+            {item.title}
+          </Text>
+          <Text style={[styles.reportType, { color: colors.text + '80' }]}>
+            {item.report_type}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={24} color={colors.text + '60'} />
+      </View>
+      <View style={[styles.reportFooter, { borderTopColor: colors.border }]}>
+        <Text style={[styles.reportDate, { color: colors.text + '60' }]}>
+          {new Date(item.created_at).toLocaleDateString()}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -49,11 +64,12 @@ export default function ReportsScreen() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
         ListEmptyComponent={() => (
-          <View style={styles.emptyContainer}>
+          <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
+            <Ionicons name="document-text" size={48} color={colors.text + '40'} />
             <Text style={[styles.emptyText, { color: colors.text }]}>
               {loading ? 'Loading reports...' : 'No reports found'}
             </Text>
-            <Text style={[styles.emptySubtext, { color: colors.text }]}>
+            <Text style={[styles.emptySubtext, { color: colors.text + '80' }]}>
               Upload your first report to get started
             </Text>
           </View>
@@ -61,10 +77,10 @@ export default function ReportsScreen() {
       />
       
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => router.push('/(app)/upload')}
       >
-        <Text style={styles.fabText}>+</Text>
+        <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
     </ThemedView>
   );
@@ -74,61 +90,76 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-  },
   contentContainer: {
-    padding: 16,
+    padding: 24,
+    gap: 16,
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: 32,
+    borderRadius: 12,
+    marginTop: 24,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    opacity: 0.8,
     textAlign: 'center',
   },
   reportItem: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  reportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  reportIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  reportInfo: {
+    flex: 1,
+  },
   reportTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 4,
   },
   reportType: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
+  },
+  reportFooter: {
+    padding: 12,
+    borderTopWidth: 1,
   },
   reportDate: {
     fontSize: 12,
-    color: '#999',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: 24,
+    bottom: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -136,10 +167,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-  },
-  fabText: {
-    fontSize: 24,
-    color: '#fff',
-    fontWeight: 'bold',
   },
 }); 
