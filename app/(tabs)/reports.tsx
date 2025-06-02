@@ -3,8 +3,12 @@ import { View, FlatList, TouchableOpacity, Text, StyleSheet, Alert } from 'react
 import { router } from 'expo-router';
 import { getReports } from '@lib/api';
 import { Report } from '@lib/types';
+import { useTheme } from '@hooks/useTheme';
+import { ThemedView } from '@components/ThemedView';
+import { Header } from '@components/Header';
 
 export default function ReportsScreen() {
+  const { colors } = useTheme();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,17 +41,23 @@ export default function ReportsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
+      <Header title="Reports" />
       <FlatList
         data={reports}
         renderItem={renderReportItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            {loading ? 'Loading reports...' : 'No reports found'}
-          </Text>
-        }
+        contentContainerStyle={styles.contentContainer}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.text }]}>
+              {loading ? 'Loading reports...' : 'No reports found'}
+            </Text>
+            <Text style={[styles.emptySubtext, { color: colors.text }]}>
+              Upload your first report to get started
+            </Text>
+          </View>
+        )}
       />
       
       <TouchableOpacity
@@ -56,17 +66,35 @@ export default function ReportsScreen() {
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
-  list: {
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    opacity: 0.8,
+    textAlign: 'center',
   },
   reportItem: {
     backgroundColor: '#fff',
@@ -92,11 +120,6 @@ const styles = StyleSheet.create({
   reportDate: {
     fontSize: 12,
     color: '#999',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 20,
   },
   fab: {
     position: 'absolute',

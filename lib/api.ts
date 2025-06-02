@@ -4,7 +4,7 @@ import { Report, ReportInsight, User, AuthResponse, LoginRequest, RegisterReques
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: API_CONFIG.HEADERS,
@@ -12,7 +12,7 @@ const api = axios.create({
 
 // Add request interceptor for logging
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     // Log the full URL being requested
     const fullUrl = `${config.baseURL}${config.url}`;
     console.log('Making request to:', fullUrl);
@@ -21,10 +21,16 @@ api.interceptors.request.use(
       headers: config.headers,
       data: config.data,
     });
-    const token = AsyncStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error getting token:', error);
     }
+    
     return config;
   },
   (error) => {

@@ -1,50 +1,46 @@
-import React from 'react';
-import { StyleSheet, Image } from 'react-native';
-import { ParallaxScrollView } from '@components/ParallaxScrollView';
-import { ThemedText } from '@components/ThemedText';
-import { ThemedView } from '@components/ThemedView';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
+import { ThemedView } from '@components/ThemedView';
+import { Header } from '@components/Header';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
 
   return (
-    <ParallaxScrollView
-      headerComponent={
-        <Image
-          source={require('../../assets/images/header.png')}
-          style={styles.headerImage}
-        />
-      }
-    >
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">Welcome to DocuInsight</ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Your AI-powered document analysis assistant
-        </ThemedText>
-        <ThemedText style={styles.description}>
-          Upload your documents and get instant insights, summaries, and key points
-          extracted using advanced AI technology.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ThemedView style={styles.container}>
+      <Header title="Home" />
+      <ScrollView style={styles.content}>
+        <View style={styles.section}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Welcome to LexiReport
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.text }]}>
+            Your AI-powered document analysis assistant
+          </Text>
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
   },
-  headerImage: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
   subtitle: {
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  description: {
-    lineHeight: 24,
+    fontSize: 16,
+    opacity: 0.8,
   },
 });

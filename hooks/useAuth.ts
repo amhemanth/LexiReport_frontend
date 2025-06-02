@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api } from '@lib/api';
+import { api, logout as apiLogout } from '@lib/api';
 
 interface User {
   id: number;
@@ -14,7 +14,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -35,7 +35,14 @@ export const useAuth = create<AuthState>((set) => ({
       set({ error: 'Invalid credentials', isLoading: false });
     }
   },
-  logout: () => {
-    set({ user: null, token: null });
+  logout: async () => {
+    try {
+      await apiLogout();
+      set({ user: null, token: null, error: null });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear the state even if the API call fails
+      set({ user: null, token: null, error: null });
+    }
   },
 })); 

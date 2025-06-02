@@ -1,28 +1,26 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useTheme';
 
-export default function TabsLayout() {
+export default function TabLayout() {
   const { colors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-        headerTintColor: colors.text,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.background,
+          borderTopColor: colors.border,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text,
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
-          title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -31,16 +29,22 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          title: 'Reports',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
+        name="upload"
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cloud-upload" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
