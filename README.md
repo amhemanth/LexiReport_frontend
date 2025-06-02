@@ -1,50 +1,150 @@
-# Welcome to your Expo app 👋
+# LexiReport Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The mobile frontend for LexiReport, built with React Native and Expo.
 
-## Get started
+## Features
 
-1. Install dependencies
+- 📱 Cross-platform (iOS, Android, Web)
+- 🌓 Dark mode support
+- 🔐 Secure authentication
+- 📊 Report management
+- 📤 File upload
+- 🎨 Modern UI/UX
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- React Native
+- Expo
+- TypeScript
+- Zustand (State Management)
+- React Navigation
+- Axios
 
-   ```bash
-   npx expo start
-   ```
+## Setup
 
-In the output, you'll find options to open the app in a
+### Prerequisites
+- Node.js 16+
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for iOS development)
+- Android Studio (for Android development)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Installation
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Install dependencies:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Start the development server:
+```bash
+npx expo start
+```
 
-## Learn more
+3. Run on specific platform:
+```bash
+# iOS
+npx expo run:ios
 
-To learn more about developing your project with Expo, look at the following resources:
+# Android
+npx expo run:android
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Web
+npx expo start:web
+```
 
-## Join the community
+## Project Structure
 
-Join our community of developers creating universal apps.
+```
+frontend/
+├── app/
+│   ├── (app)/
+│   │   ├── index.tsx
+│   │   ├── reports.tsx
+│   │   ├── upload.tsx
+│   │   └── profile.tsx
+│   ├── components/
+│   │   ├── Header.tsx
+│   │   └── ThemedView.tsx
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   └── useTheme.ts
+│   └── lib/
+│       ├── api.ts
+│       └── types.ts
+├── assets/
+│   ├── icon.png
+│   ├── splash.png
+│   └── adaptive-icon.png
+├── app.json
+├── babel.config.js
+├── tsconfig.json
+└── README.md
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Development
+
+### Code Style
+- Follow TypeScript best practices
+- Use functional components
+- Implement proper type definitions
+- Follow React Native guidelines
+
+### State Management
+- Use Zustand for global state
+- Use React hooks for local state
+- Implement proper error handling
+
+### Navigation
+- Use Expo Router for navigation
+- Implement proper navigation types
+- Handle deep linking
+
+### Theming
+- Support light/dark mode
+- Use consistent colors
+- Implement proper typography
+
+## Testing
+
+```bash
+# Run tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+```
+
+## Building for Production
+
+### iOS
+```bash
+eas build --platform ios
+```
+
+### Android
+```bash
+eas build --platform android
+```
+
+### Web
+```bash
+eas build --platform web
+```
+
+## Environment Variables
+
+Required environment variables:
+- `API_URL`: Backend API URL
+- `APP_ENV`: Environment (development/production)
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run tests
+4. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.

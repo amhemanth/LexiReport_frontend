@@ -37,3 +37,22 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Testing
+coverage/
+
+# Build
+build/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+.stylelintcache
