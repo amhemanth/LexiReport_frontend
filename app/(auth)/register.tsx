@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { router } from 'expo-router';
 import { register } from '@lib/api';
 import { ThemedView } from '@components/ThemedView';
@@ -15,22 +25,70 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
 
-  const handleRegister = async () => {
-    if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const validateForm = (): boolean => {
+    const newErrors: typeof errors = {};
+
+    if (!fullName) {
+      newErrors.fullName = 'Full name is required';
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (!validatePassword(password)) {
+      newErrors.password = 'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isLongEnough = password.length >= 8;
+
+    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar && isLongEnough;
+  };
+
+  const handleRegister = async () => {
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     try {
       await register({ full_name: fullName, email, password });
-      router.replace('/(tabs)');
+      Alert.alert(
+        'Registration Successful',
+        'Your account has been created. Please log in to continue.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(auth)/login'),
+          },
+        ]
+      );
     } catch (error) {
       console.error('Registration error:', error);
       Alert.alert(
@@ -44,9 +102,9 @@ export default function RegisterScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
+        style={styles.content}
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
@@ -54,101 +112,165 @@ export default function RegisterScreen() {
             Sign up to get started
           </Text>
         </View>
-        
+
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Full Name"
-              placeholderTextColor={colors.text + '80'}
-              value={fullName}
-              onChangeText={setFullName}
-              editable={!loading}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Email"
-              placeholderTextColor={colors.text + '80'}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-            />
-          </View>
-          
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Password"
-              placeholderTextColor={colors.text + '80'}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity 
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons 
-                name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                size={20} 
-                color={colors.text + '80'} 
+            <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.fullName ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={fullName}
+                onChangeText={(text) => {
+                  setFullName(text);
+                  if (errors.fullName) {
+                    setErrors(prev => ({ ...prev, fullName: undefined }));
+                  }
+                }}
+                placeholder="Enter your full name"
+                placeholderTextColor={colors.text + '80'}
+                autoCapitalize="words"
+                autoComplete="name"
               />
-            </TouchableOpacity>
+            </View>
+            {errors.fullName && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.fullName}
+              </Text>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Confirm Password"
-              placeholderTextColor={colors.text + '80'}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity 
-              style={styles.eyeIcon}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Ionicons 
-                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
-                size={20} 
-                color={colors.text + '80'} 
+            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.email ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) {
+                    setErrors(prev => ({ ...prev, email: undefined }));
+                  }
+                }}
+                placeholder="Enter your email"
+                placeholderTextColor={colors.text + '80'}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
               />
-            </TouchableOpacity>
+            </View>
+            {errors.email && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.email}
+              </Text>
+            )}
           </View>
 
-          <TouchableOpacity 
-            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.password ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password) {
+                    setErrors(prev => ({ ...prev, password: undefined }));
+                  }
+                }}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password-new"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.password}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.confirmPassword ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errors.confirmPassword) {
+                    setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                  }
+                }}
+                placeholder="Confirm your password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                autoComplete="password-new"
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.confirmPassword && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.confirmPassword}
+              </Text>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.registerButton, { backgroundColor: colors.primary }]}
             onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign Up</Text>
+              <Text style={styles.registerButtonText}>Sign Up</Text>
             )}
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.linkButton}
-            disabled={loading}
-          >
-            <Text style={[styles.linkText, { color: colors.primary }]}>
-              Already have an account? Sign In
+
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: colors.text + '80' }]}>
+              Already have an account?{' '}
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <Text style={[styles.footerLink, { color: colors.primary }]}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </ThemedView>
@@ -159,13 +281,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  keyboardAvoid: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   header: {
-    marginBottom: 32,
+    marginTop: 60,
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,
@@ -176,45 +298,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   form: {
-    gap: 16,
+    gap: 20,
   },
   inputContainer: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
-  inputIcon: {
-    marginRight: 8,
-  },
   input: {
     flex: 1,
-    padding: 15,
+    height: 48,
     fontSize: 16,
   },
   eyeIcon: {
     padding: 8,
   },
-  button: {
-    padding: 16,
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  registerButton: {
+    height: 48,
     borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
+  registerButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  linkButton: {
-    marginTop: 16,
-    alignItems: 'center',
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
   },
-  linkText: {
-    fontSize: 16,
+  footerText: {
+    fontSize: 14,
+  },
+  footerLink: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 }); 

@@ -12,6 +12,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useTheme';
 import { changePassword } from '@lib/api';
+import { useAuth } from '@hooks/useAuth';
+import { router } from 'expo-router';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -20,6 +22,7 @@ interface ChangePasswordModalProps {
 
 export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
   const { colors } = useTheme();
+  const { logout } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,15 +30,47 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
 
-  const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const validatePassword = (password: string): boolean => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isLongEnough = password.length >= 8;
+
+    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar && isLongEnough;
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: typeof errors = {};
+
+    if (!currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
     }
 
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+    if (!newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (!validatePassword(newPassword)) {
+      newErrors.newPassword = 'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your new password';
+    } else if (newPassword !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChangePassword = async () => {
+    if (!validateForm()) {
       return;
     }
 
@@ -45,20 +80,56 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
         current_password: currentPassword,
         new_password: newPassword,
       });
-      Alert.alert('Success', 'Password changed successfully');
-      onClose();
-      // Clear form
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (error) {
+      
       Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to change password'
+        'Success',
+        'Password changed successfully',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              onClose();
+              // Clear form
+              setCurrentPassword('');
+              setNewPassword('');
+              setConfirmPassword('');
+              setErrors({});
+            },
+          },
+        ]
       );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
+      
+      if (errorMessage.includes('session has expired')) {
+        Alert.alert(
+          'Session Expired',
+          'Your session has expired. Please log in again.',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await logout();
+                router.replace('/(auth)/login');
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClose = () => {
+    // Clear form and errors when closing
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setErrors({});
+    onClose();
   };
 
   return (
@@ -66,7 +137,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
@@ -74,11 +145,19 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Current Password</Text>
-            <View style={[styles.passwordInput, { borderColor: colors.border }]}>
+            <View style={[
+              styles.passwordInput,
+              { borderColor: errors.currentPassword ? colors.error : colors.border }
+            ]}>
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 value={currentPassword}
-                onChangeText={setCurrentPassword}
+                onChangeText={(text) => {
+                  setCurrentPassword(text);
+                  if (errors.currentPassword) {
+                    setErrors(prev => ({ ...prev, currentPassword: undefined }));
+                  }
+                }}
                 secureTextEntry={!showCurrentPassword}
                 placeholder="Enter current password"
                 placeholderTextColor={colors.text + '80'}
@@ -94,15 +173,28 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
                 />
               </TouchableOpacity>
             </View>
+            {errors.currentPassword && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.currentPassword}
+              </Text>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
-            <View style={[styles.passwordInput, { borderColor: colors.border }]}>
+            <View style={[
+              styles.passwordInput,
+              { borderColor: errors.newPassword ? colors.error : colors.border }
+            ]}>
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 value={newPassword}
-                onChangeText={setNewPassword}
+                onChangeText={(text) => {
+                  setNewPassword(text);
+                  if (errors.newPassword) {
+                    setErrors(prev => ({ ...prev, newPassword: undefined }));
+                  }
+                }}
                 secureTextEntry={!showNewPassword}
                 placeholder="Enter new password"
                 placeholderTextColor={colors.text + '80'}
@@ -118,15 +210,28 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
                 />
               </TouchableOpacity>
             </View>
+            {errors.newPassword && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.newPassword}
+              </Text>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Confirm New Password</Text>
-            <View style={[styles.passwordInput, { borderColor: colors.border }]}>
+            <View style={[
+              styles.passwordInput,
+              { borderColor: errors.confirmPassword ? colors.error : colors.border }
+            ]}>
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errors.confirmPassword) {
+                    setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                  }
+                }}
                 secureTextEntry={!showConfirmPassword}
                 placeholder="Confirm new password"
                 placeholderTextColor={colors.text + '80'}
@@ -142,12 +247,17 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
                 />
               </TouchableOpacity>
             </View>
+            {errors.confirmPassword && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.confirmPassword}
+              </Text>
+            )}
           </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}
+              onPress={handleClose}
               disabled={loading}
             >
               <Text style={[styles.buttonText, { color: colors.text }]}>Cancel</Text>
@@ -238,5 +348,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 }); 

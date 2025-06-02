@@ -1,44 +1,79 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { router } from 'expo-router';
-import { login } from '@lib/api';
+import { useAuth } from '@hooks/useAuth';
 import { ThemedView } from '@components/ThemedView';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
+  const { login, isLoading, error, success, clearMessages } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+
+  useEffect(() => {
+    if (success) {
+      router.replace('/(tabs)');
+    }
+  }, [success]);
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+      clearMessages();
+    }
+  }, [error]);
+
+  const validateForm = (): boolean => {
+    const newErrors: typeof errors = {};
+
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!validateForm()) {
       return;
     }
 
-    setLoading(true);
     try {
-      await login({ email, password });
-      router.replace('/(tabs)');
+      await login(email, password);
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert(
-        'Login Failed',
-        error instanceof Error ? error.message : 'Failed to login. Please check your credentials and try again.'
-      );
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <ThemedView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
+        style={styles.content}
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
@@ -46,66 +81,98 @@ export default function LoginScreen() {
             Sign in to continue
           </Text>
         </View>
-        
+
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Email"
-              placeholderTextColor={colors.text + '80'}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-            />
-          </View>
-          
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.text + '80'} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Password"
-              placeholderTextColor={colors.text + '80'}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity 
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons 
-                name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                size={20} 
-                color={colors.text + '80'} 
+            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.email ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) {
+                    setErrors(prev => ({ ...prev, email: undefined }));
+                  }
+                }}
+                placeholder="Enter your email"
+                placeholderTextColor={colors.text + '80'}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
               />
-            </TouchableOpacity>
+            </View>
+            {errors.email && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.email}
+              </Text>
+            )}
           </View>
 
-          <TouchableOpacity 
-            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.password ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password) {
+                    setErrors(prev => ({ ...prev, password: undefined }));
+                  }
+                }}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.password}
+              </Text>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.loginButton, { backgroundColor: colors.primary }]}
             onPress={handleLogin}
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? (
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.loginButtonText}>Sign In</Text>
             )}
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            onPress={() => router.push('/(auth)/register')}
-            style={styles.linkButton}
-            disabled={loading}
-          >
-            <Text style={[styles.linkText, { color: colors.primary }]}>
-              Don't have an account? Sign Up
+
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: colors.text + '80' }]}>
+              Don't have an account?{' '}
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={[styles.footerLink, { color: colors.primary }]}>
+                Sign Up
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </ThemedView>
@@ -116,13 +183,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  keyboardAvoid: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   header: {
-    marginBottom: 32,
+    marginTop: 60,
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,
@@ -133,45 +200,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   form: {
-    gap: 16,
+    gap: 20,
   },
   inputContainer: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
-  inputIcon: {
-    marginRight: 8,
-  },
   input: {
     flex: 1,
-    padding: 15,
+    height: 48,
     fontSize: 16,
   },
   eyeIcon: {
     padding: 8,
   },
-  button: {
-    padding: 16,
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  loginButton: {
+    height: 48,
     borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
+  loginButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  linkButton: {
-    marginTop: 16,
-    alignItems: 'center',
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
   },
-  linkText: {
-    fontSize: 16,
+  footerText: {
+    fontSize: 14,
+  },
+  footerLink: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 }); 

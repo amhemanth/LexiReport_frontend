@@ -118,10 +118,28 @@ export const login = async (loginData: LoginRequest): Promise<AuthResponse> => {
         status: error.response?.status,
         statusText: error.response?.statusText,
       });
-      // Throw a more specific error message
-      throw new Error(error.response?.data?.detail || 'Failed to login');
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        throw new Error('Invalid email or password');
+      }
+      if (error.response?.status === 422) {
+        const detail = error.response.data?.detail;
+        if (Array.isArray(detail)) {
+          // Handle validation errors
+          const messages = detail.map(err => err.msg).join('\n');
+          throw new Error(messages);
+        }
+        throw new Error(detail || 'Invalid input data');
+      }
+      if (error.response?.status === 429) {
+        throw new Error('Too many login attempts. Please try again later.');
+      }
+      
+      // Generic error message
+      throw new Error(error.response?.data?.detail || 'Failed to login. Please try again.');
     }
-    throw new Error('Failed to login');
+    throw new Error('Network error. Please check your connection and try again.');
   }
 };
 
@@ -137,8 +155,33 @@ export const register = async (registerData: RegisterRequest): Promise<AuthRespo
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error('Registration error:', error.response?.data);
+      
+      // Handle specific error cases
+      if (error.response?.status === 400) {
+        if (error.response.data?.detail?.includes('email')) {
+          throw new Error('Email is already registered');
+        }
+        if (error.response.data?.detail?.includes('password')) {
+          throw new Error('Password does not meet requirements. Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.');
+        }
+      }
+      if (error.response?.status === 422) {
+        const detail = error.response.data?.detail;
+        if (Array.isArray(detail)) {
+          // Handle validation errors
+          const messages = detail.map(err => err.msg).join('\n');
+          throw new Error(messages);
+        }
+        throw new Error(detail || 'Invalid input data');
+      }
+      if (error.response?.status === 429) {
+        throw new Error('Too many registration attempts. Please try again later.');
+      }
+      
+      // Generic error message
+      throw new Error(error.response?.data?.detail || 'Failed to register. Please try again.');
     }
-    throw new Error('Failed to register');
+    throw new Error('Network error. Please check your connection and try again.');
   }
 };
 
@@ -225,8 +268,26 @@ export const changePassword = async (data: ChangePasswordRequest): Promise<void>
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error('Change password error:', error.response?.data);
-      throw new Error(error.response?.data?.detail || 'Failed to change password');
+      
+      // Handle specific error cases
+      if (error.response?.status === 400) {
+        if (error.response.data?.detail?.includes('current password')) {
+          throw new Error('Current password is incorrect');
+        }
+        if (error.response.data?.detail?.includes('password')) {
+          throw new Error('New password does not meet requirements. Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.');
+        }
+      }
+      if (error.response?.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to change the password.');
+      }
+      
+      // Generic error message
+      throw new Error(error.response?.data?.detail || 'Failed to change password. Please try again.');
     }
-    throw new Error('Failed to change password');
+    throw new Error('Network error. Please check your connection and try again.');
   }
 }; 
