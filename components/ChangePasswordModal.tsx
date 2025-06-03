@@ -148,122 +148,129 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       transparent={true}
       onRequestClose={handleClose}
     >
-      <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Change Password</Text>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Current Password</Text>
-            <View style={[
-              styles.passwordInput,
-              { borderColor: errors.currentPassword ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={currentPassword}
-                onChangeText={(text) => {
-                  setCurrentPassword(text);
-                  if (errors.currentPassword) {
-                    setErrors(prev => ({ ...prev, currentPassword: undefined }));
-                  }
-                }}
-                secureTextEntry={!showCurrentPassword}
-                placeholder="Enter current password"
-                placeholderTextColor={colors.text + '80'}
-              />
-              <TouchableOpacity
-                onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showCurrentPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-            {errors.currentPassword && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.currentPassword}
-              </Text>
-            )}
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: colors.text }]}>Change Password</Text>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
-            <View style={[
-              styles.passwordInput,
-              { borderColor: errors.newPassword ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={newPassword}
-                onChangeText={(text) => {
-                  setNewPassword(text);
-                  if (errors.newPassword) {
-                    setErrors(prev => ({ ...prev, newPassword: undefined }));
-                  }
-                }}
-                secureTextEntry={!showNewPassword}
-                placeholder="Enter new password"
-                placeholderTextColor={colors.text + '80'}
-              />
-              <TouchableOpacity
-                onPress={() => setShowNewPassword(!showNewPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showNewPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.text}
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Current Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.currentPassword ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={currentPassword}
+                  onChangeText={(text) => {
+                    setCurrentPassword(text);
+                    if (errors.currentPassword) {
+                      setErrors(prev => ({ ...prev, currentPassword: undefined }));
+                    }
+                  }}
+                  secureTextEntry={!showCurrentPassword}
+                  placeholder="Enter current password"
+                  placeholderTextColor={colors.text + '80'}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showCurrentPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.currentPassword && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.currentPassword}
+                </Text>
+              )}
             </View>
-            {errors.newPassword && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.newPassword}
-              </Text>
-            )}
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.newPassword ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={newPassword}
+                  onChangeText={(text) => {
+                    setNewPassword(text);
+                    if (errors.newPassword) {
+                      setErrors(prev => ({ ...prev, newPassword: undefined }));
+                    }
+                  }}
+                  secureTextEntry={!showNewPassword}
+                  placeholder="Enter new password"
+                  placeholderTextColor={colors.text + '80'}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showNewPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.newPassword && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.newPassword}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Confirm New Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.confirmPassword ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    if (errors.confirmPassword) {
+                      setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                    }
+                  }}
+                  secureTextEntry={!showConfirmPassword}
+                  placeholder="Confirm new password"
+                  placeholderTextColor={colors.text + '80'}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.confirmPassword && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.confirmPassword}
+                </Text>
+              )}
+            </View>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Confirm New Password</Text>
-            <View style={[
-              styles.passwordInput,
-              { borderColor: errors.confirmPassword ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  if (errors.confirmPassword) {
-                    setErrors(prev => ({ ...prev, confirmPassword: undefined }));
-                  }
-                }}
-                secureTextEntry={!showConfirmPassword}
-                placeholder="Confirm new password"
-                placeholderTextColor={colors.text + '80'}
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showConfirmPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-            {errors.confirmPassword && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.confirmPassword}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.buttonContainer}>
+          <View style={styles.footer}>
             <TouchableOpacity
               style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
               onPress={handleClose}
@@ -294,60 +301,75 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: '90%',
-    padding: 20,
-    borderRadius: 10,
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 24,
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    fontWeight: '700',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  form: {
+    marginBottom: 24,
   },
   inputContainer: {
     marginBottom: 16,
   },
   label: {
     fontSize: 16,
+    fontWeight: '600',
     marginBottom: 8,
   },
-  passwordInput: {
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
   },
   input: {
     flex: 1,
-    height: 48,
     fontSize: 16,
+    height: '100%',
   },
   eyeIcon: {
     padding: 8,
   },
-  buttonContainer: {
+  footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
+    gap: 12,
   },
   button: {
     flex: 1,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 8,
   },
   cancelButton: {
     borderWidth: 1,
   },
   saveButton: {
-    marginLeft: 8,
+    minWidth: 120,
   },
   buttonText: {
     fontSize: 16,
