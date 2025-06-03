@@ -3,6 +3,8 @@ export interface User {
   email: string;
   full_name?: string;
   is_active: boolean;
+  role: 'admin' | 'user';
+  permissions: string[];
   created_at: string;
   updated_at: string;
 }

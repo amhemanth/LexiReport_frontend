@@ -39,6 +39,11 @@ export default function ProfileScreen() {
           <Text style={[styles.userEmail, { color: colors.text + '80' }]}>
             {user?.email}
           </Text>
+          <View style={styles.roleContainer}>
+            <Text style={[styles.roleText, { color: colors.text + '80' }]}>
+              Role: {user?.role?.toUpperCase() || 'USER'}
+            </Text>
+          </View>
         </View>
 
         {/* Account Section */}
@@ -71,6 +76,34 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
+
+        {/* Permissions Section - Only show for admin users */}
+        {user?.role === 'admin' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Permissions</Text>
+            {user?.permissions?.map((permission, index) => (
+              <View
+                key={index}
+                style={[styles.permissionItem, { borderBottomColor: colors.border }]}
+              >
+                <Ionicons name="shield-checkmark-outline" size={24} color={colors.text} />
+                <Text style={[styles.permissionText, { color: colors.text }]}> {permission.replace(/_/g, ' ').toUpperCase()} </Text>
+              </View>
+            ))}
+            {/* Admin controls for role/permission management */}
+            <TouchableOpacity
+              style={[styles.menuItem, { borderBottomColor: colors.border, marginTop: 16 }]}
+              onPress={() => {
+                // Navigate to user management screen
+                router.push('/user-management');
+              }}
+            >
+              <Ionicons name="settings-outline" size={24} color={colors.text} />
+              <Text style={[styles.menuText, { color: colors.text }]}>Manage Users</Text>
+              <Ionicons name="chevron-forward" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Security Section */}
         <View style={styles.section}>
@@ -192,5 +225,27 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  roleContainer: {
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  roleText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  permissionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  permissionText: {
+    flex: 1,
+    fontSize: 14,
+    marginLeft: 16,
   },
 }); 

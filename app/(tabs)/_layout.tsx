@@ -2,9 +2,11 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useTheme';
+import { useAuth } from '@hooks/useAuth';
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const { user } = useAuth();
 
   return (
     <Tabs

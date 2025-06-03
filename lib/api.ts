@@ -296,4 +296,23 @@ export const changePassword = async (data: ChangePasswordRequest): Promise<void>
     }
     throw new Error('Network error. Please check your connection and try again.');
   }
+};
+
+// User Role and Permission Management
+export const updateUserRole = async (userId: number, role: 'admin' | 'user'): Promise<User> => {
+  const response = await api.put<User>(`/users/${userId}/role`, { role });
+  return response.data;
+};
+
+export const addUserPermission = async (userId: number, permission: string): Promise<void> => {
+  await api.post(`/users/${userId}/permissions`, { permission });
+};
+
+export const removeUserPermission = async (userId: number, permission: string): Promise<void> => {
+  await api.delete(`/users/${userId}/permissions/${permission}`);
+};
+
+export const getUserPermissions = async (userId: number): Promise<string[]> => {
+  const response = await api.get<{ permissions: string[] }>(`/users/${userId}/permissions`);
+  return response.data.permissions;
 }; 

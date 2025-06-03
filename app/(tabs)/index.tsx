@@ -4,9 +4,11 @@ import { ThemedView } from '@components/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useAuth } from '@hooks/useAuth';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
+  const { user } = useAuth();
 
   return (
     <ThemedView style={styles.container}>
@@ -57,6 +59,17 @@ export default function HomeScreen() {
                 Access your analysis history
               </Text>
             </TouchableOpacity>
+
+            {user?.role === 'admin' && (
+              <TouchableOpacity 
+                style={[styles.actionCard, { backgroundColor: colors.card }]}
+                onPress={() => router.push('/(tabs)/user-management')}
+              >
+                <Ionicons name="people" size={32} color={colors.primary} />
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Users</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.text + '80' }]}>Admin: manage roles & permissions</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
