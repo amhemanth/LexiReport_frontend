@@ -57,6 +57,8 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       newErrors.newPassword = 'New password is required';
     } else if (!validatePassword(newPassword)) {
       newErrors.newPassword = 'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character';
+    } else if (newPassword === currentPassword) {
+      newErrors.newPassword = 'New password must be different from current password';
     }
 
     if (!confirmPassword) {
@@ -116,7 +118,14 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
           ]
         );
       } else {
-        Alert.alert('Error', errorMessage);
+        // Set the error in the appropriate field
+        if (errorMessage.includes('Current password')) {
+          setErrors(prev => ({ ...prev, currentPassword: errorMessage }));
+        } else if (errorMessage.includes('New password')) {
+          setErrors(prev => ({ ...prev, newPassword: errorMessage }));
+        } else {
+          Alert.alert('Error', errorMessage);
+        }
       }
     } finally {
       setLoading(false);

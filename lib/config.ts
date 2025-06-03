@@ -1,12 +1,19 @@
 import Constants from 'expo-constants';
 
 // API Configuration
-export const API_URL = Constants.expoConfig?.extra?.apiUrl?.trim() || 'http://192.168.123.82:8000/api/v1';
+const getEnvVar = (key: string): string => {
+  const value = Constants.expoConfig?.extra?.[key]?.trim();
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+};
 
+export const API_URL = getEnvVar('apiUrl');
 export const API_CONFIG = {
   // Use your computer's local IP address when testing on a physical device
   // Use localhost when testing on an emulator
-  BASE_URL: Constants.expoConfig?.extra?.apiBaseUrl?.trim() || 'http://192.168.123.82:8000',
+  BASE_URL: getEnvVar('apiBaseUrl'),
   TIMEOUT: 10000,
   HEADERS: {
     'Content-Type': 'application/json',

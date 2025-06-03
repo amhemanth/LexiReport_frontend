@@ -261,9 +261,9 @@ export interface ChangePasswordRequest {
 
 export const changePassword = async (data: ChangePasswordRequest): Promise<void> => {
   try {
-    await api.put('/users/me', {
+    await api.put('/users/me/password', {
       current_password: data.current_password,
-      password: data.new_password
+      new_password: data.new_password
     });
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -274,6 +274,9 @@ export const changePassword = async (data: ChangePasswordRequest): Promise<void>
         if (error.response.data?.detail?.includes('current password')) {
           throw new Error('Current password is incorrect');
         }
+        if (error.response.data?.detail?.includes('must be different')) {
+          throw new Error('New password must be different from current password');
+        }
         if (error.response.data?.detail?.includes('password')) {
           throw new Error('New password does not meet requirements. Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.');
         }
@@ -283,6 +286,9 @@ export const changePassword = async (data: ChangePasswordRequest): Promise<void>
       }
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to change the password.');
+      }
+      if (error.response?.status === 500) {
+        throw new Error('Failed to update password. Please try again.');
       }
       
       // Generic error message
