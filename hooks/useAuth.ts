@@ -14,6 +14,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearMessages: () => void;
   clearSession: () => Promise<void>;
+  setUser: (user: User) => void;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -84,5 +85,6 @@ export const useAuth = create<AuthState>((set) => ({
       success: null,
       isLoading: false
     });
-  }
+  },
+  setUser: (user: User) => set({ user }),
 })); 

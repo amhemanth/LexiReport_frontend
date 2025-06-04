@@ -1,8 +1,11 @@
 import { useColorScheme } from 'react-native';
+import { useThemeStore } from '@/store/themeStore';
 
 export const useTheme = () => {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useThemeStore();
+  const effectiveScheme = theme === 'system' ? colorScheme : theme;
+  const isDark = effectiveScheme === 'dark';
 
   return {
     colors: {
@@ -15,5 +18,7 @@ export const useTheme = () => {
       error: '#FF3B30',
     },
     isDark,
+    theme,
+    setTheme: useThemeStore().setTheme,
   };
 }; 

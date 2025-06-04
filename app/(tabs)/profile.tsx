@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, TextInput, Switch } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
 import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
@@ -7,11 +7,17 @@ import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ChangePasswordModal } from '@components/ChangePasswordModal';
+import { api } from '@/services/api';
 
 export default function ProfileScreen() {
-  const { colors } = useTheme();
-  const { logout, user } = useAuth();
+  const { colors, theme, setTheme } = useTheme();
+  const { logout, user, setUser } = useAuth();
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [fullName, setFullName] = useState(user?.full_name || '');
+  const [email, setEmail] = useState(user?.email || '');
 
   const handleLogout = async () => {
     try {
@@ -20,6 +26,24 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const response = await api.put('/users/me', { full_name: fullName, email });
+      setUser(response.data);
+      Alert.alert('Success', 'Profile updated!');
+      setShowEditProfile(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile');
+    }
+  };
+
+  // Prefill form when opening Edit Profile
+  const openEditProfile = () => {
+    setFullName(user?.full_name || '');
+    setEmail(user?.email || '');
+    setShowEditProfile(true);
   };
 
   return (
@@ -53,26 +77,18 @@ export default function ProfileScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
-            onPress={() => {
-              // TODO: Implement edit profile
-            }}
+            onPress={openEditProfile}
           >
             <Ionicons name="person-outline" size={24} color={colors.text} />
-            <Text style={[styles.menuText, { color: colors.text }]}>
-              Edit Profile
-            </Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>Edit Profile</Text>
             <Ionicons name="chevron-forward" size={24} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
-            onPress={() => {
-              // TODO: Implement settings
-            }}
+            onPress={() => setShowSettings(true)}
           >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
-            <Text style={[styles.menuText, { color: colors.text }]}>
-              Settings
-            </Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>Settings</Text>
             <Ionicons name="chevron-forward" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -82,26 +98,11 @@ export default function ProfileScreen() {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Permissions</Text>
             {user?.permissions?.map((permission, index) => (
-              <View
-                key={index}
-                style={[styles.permissionItem, { borderBottomColor: colors.border }]}
-              >
+              <View key={index} style={[styles.permissionItem, { borderBottomColor: colors.border }]}> 
                 <Ionicons name="shield-checkmark-outline" size={24} color={colors.text} />
                 <Text style={[styles.permissionText, { color: colors.text }]}> {permission.replace(/_/g, ' ').toUpperCase()} </Text>
               </View>
             ))}
-            {/* Admin controls for role/permission management */}
-            <TouchableOpacity
-              style={[styles.menuItem, { borderBottomColor: colors.border, marginTop: 16 }]}
-              onPress={() => {
-                // Navigate to user management screen
-                router.push('/user-management');
-              }}
-            >
-              <Ionicons name="settings-outline" size={24} color={colors.text} />
-              <Text style={[styles.menuText, { color: colors.text }]}>Manage Users</Text>
-              <Ionicons name="chevron-forward" size={24} color={colors.text} />
-            </TouchableOpacity>
           </View>
         )}
 
@@ -129,27 +130,95 @@ export default function ProfileScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
-            onPress={() => {
-              // TODO: Implement help
-            }}
+            onPress={() => setShowHelp(true)}
           >
             <Ionicons name="help-circle-outline" size={24} color={colors.text} />
-            <Text style={[styles.menuText, { color: colors.text }]}>
-              Help & Support
-            </Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity
-          style={[styles.logoutButton, { backgroundColor: colors.error }]}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error, marginTop: 24, marginBottom: 24 }]} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={24} color="#fff" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 10, padding: 16 }]}> 
+          <View style={[{ width: '100%', maxWidth: 400, backgroundColor: colors.card, borderRadius: 16, padding: 24 }]}> 
+            <Text style={[{ fontSize: 24, fontWeight: 'bold', marginBottom: 24, color: colors.text }]}>Edit Profile</Text>
+            <TextInput
+              style={[{ borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, color: colors.text, borderColor: colors.border }]}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Full Name"
+              placeholderTextColor={colors.text + '80'}
+            />
+            <TextInput
+              style={[{ borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, color: colors.text, borderColor: colors.border }]}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              placeholderTextColor={colors.text + '80'}
+              keyboardType="email-address"
+            />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity style={[{ flex: 1, padding: 16, backgroundColor: colors.primary, borderRadius: 8 }]} onPress={handleSaveProfile}>
+                <Text style={{ color: '#fff', fontSize: 16, textAlign: 'center' }}>Save Changes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[{ flex: 1, padding: 16, backgroundColor: colors.border, borderRadius: 8 }]} onPress={() => setShowEditProfile(false)}>
+                <Text style={{ color: colors.text, fontSize: 16, textAlign: 'center' }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 10, padding: 16 }]}> 
+          <View style={[{ width: '100%', maxWidth: 400, backgroundColor: colors.card, borderRadius: 16, padding: 24 }]}> 
+            <Text style={[{ fontSize: 24, fontWeight: 'bold', marginBottom: 24, color: colors.text }]}>Settings</Text>
+            <Text style={{ color: colors.text, marginBottom: 24 }}>Theme</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <TouchableOpacity style={{ flex: 1, padding: 12, backgroundColor: theme === 'light' ? colors.primary : '#eee', borderRadius: 8, marginRight: 8 }} onPress={() => setTheme('light')}>
+                <Text style={{ color: theme === 'light' ? '#fff' : colors.text, textAlign: 'center' }}>Light</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1, padding: 12, backgroundColor: theme === 'dark' ? colors.primary : '#eee', borderRadius: 8, marginRight: 8 }} onPress={() => setTheme('dark')}>
+                <Text style={{ color: theme === 'dark' ? '#fff' : colors.text, textAlign: 'center' }}>Dark</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1, padding: 12, backgroundColor: theme === 'system' ? colors.primary : '#eee', borderRadius: 8 }} onPress={() => setTheme('system')}>
+                <Text style={{ color: theme === 'system' ? '#fff' : colors.text, textAlign: 'center' }}>System</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={[{ padding: 16, backgroundColor: colors.border, borderRadius: 8 }]} onPress={() => setShowSettings(false)}>
+              <Text style={{ fontSize: 16, color: colors.text, textAlign: 'center' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 10, padding: 16 }]}> 
+          <View style={[{ width: '100%', maxWidth: 400, backgroundColor: colors.card, borderRadius: 16, padding: 24, maxHeight: '80%' }]}> 
+            <ScrollView>
+              <Text style={[{ fontSize: 24, fontWeight: 'bold', marginBottom: 24, color: colors.text }]}>Help & Support</Text>
+              <Text style={{ color: colors.text, marginBottom: 16 }}>
+                - For account issues, contact support@example.com
+                {'\n'}- FAQ:{'\n'}1. How do I reset my password?{'\n'}2. How do I update my profile?
+              </Text>
+              {/* Add more help content as needed */}
+            </ScrollView>
+            <TouchableOpacity style={[{ padding: 16, backgroundColor: colors.border, borderRadius: 8, marginTop: 16 }]} onPress={() => setShowHelp(false)}>
+              <Text style={{ fontSize: 16, color: colors.text, textAlign: 'center' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <ChangePasswordModal
         visible={showChangePassword}
