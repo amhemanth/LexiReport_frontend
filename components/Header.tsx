@@ -37,7 +37,7 @@ export function Header({ title, showBack = false, rightComponent }: HeaderProps)
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight + 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : (StatusBar.currentHeight || 0) + 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',

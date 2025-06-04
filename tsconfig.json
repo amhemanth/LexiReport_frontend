@@ -13,8 +13,20 @@
       "@hooks/*": [
         "./hooks/*"
       ],
-      "@lib/*": [
-        "./lib/*"
+      "@services/*": [
+        "./services/*"
+      ],
+      "@store/*": [
+        "./store/*"
+      ],
+      "@utils/*": [
+        "./utils/*"
+      ],
+      "@models/*": [
+        "./models/*"
+      ],
+      "@config/*": [
+        "./config/*"
       ]
     },
     "typeRoots": [

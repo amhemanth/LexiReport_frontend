@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
-import { ThemedView } from '@components/ThemedView';
+import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 

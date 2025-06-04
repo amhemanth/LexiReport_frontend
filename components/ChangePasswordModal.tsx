@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useTheme';
-import { changePassword } from '@lib/api';
+import { changePassword } from '@/services/user';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
 

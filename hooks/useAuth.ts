@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { login as apiLogin, logout as apiLogout } from '@lib/api';
-import { User } from '@lib/types';
+import { login as apiLogin, logout as apiLogout } from '@/services/auth';
+import { User } from '@models/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 

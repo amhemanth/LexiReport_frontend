@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { register } from '@lib/api';
-import { ThemedView } from '@components/ThemedView';
+import { register } from '@/services/auth';
+import { ThemedView } from '@components/ui/ThemedView';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 

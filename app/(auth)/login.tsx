@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@hooks/useAuth';
-import { ThemedView } from '@components/ThemedView';
+import { ThemedView } from '@components/ui/ThemedView';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 

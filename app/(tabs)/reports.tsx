@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { getReports } from '@lib/api';
-import { Report } from '@lib/types';
+import { getReports } from '@/services/report';
+import { Report } from '@models/report';
 import { useTheme } from '@hooks/useTheme';
-import { ThemedView } from '@components/ThemedView';
+import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@hooks/useAuth';
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
+  const { token } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,8 +21,11 @@ export default function ReportsScreen() {
 
   const loadReports = async () => {
     try {
-      const data = await getReports();
-      setReports(data);
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+      const data = await getReports(token);
+      setReports(data.items);
     } catch (error) {
       Alert.alert('Error', 'Failed to load reports');
     } finally {

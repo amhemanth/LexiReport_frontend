@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
-import { ThemedView } from '@components/ThemedView';
+import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
-import { getUserPermissions, updateUserRole, addUserPermission, removeUserPermission } from '@lib/api';
+import { getUserPermissions, updateUserRole, addUserPermission, removeUserPermission } from '@/services/user';
 import { useAuth } from '@hooks/useAuth';
-import { User } from '@lib/types';
+import { User } from '@models/user';
 
 const AVAILABLE_ROLES = ['admin', 'user'];
 const AVAILABLE_PERMISSIONS = [
