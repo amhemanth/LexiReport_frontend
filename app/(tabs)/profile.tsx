@@ -10,6 +10,7 @@ import { ChangePasswordModal } from '@components/ChangePasswordModal';
 import { api } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
+import Toast from 'react-native-toast-message';
 
 export default function ProfileScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -63,10 +64,10 @@ export default function ProfileScreen() {
     try {
       const response = await api.put('/users/me', { full_name: fullName, email });
       setUser(response.data);
-      Alert.alert('Success', 'Profile updated!');
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Profile updated!' });
       setShowEditProfile(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to update profile' });
     }
   };
 

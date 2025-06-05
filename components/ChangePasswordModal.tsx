@@ -14,6 +14,7 @@ import { useTheme } from '@hooks/useTheme';
 import { changePassword } from '@/services/user';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -83,23 +84,19 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
         new_password: newPassword,
       });
       
-      Alert.alert(
-        'Success',
-        'Password changed successfully',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              onClose();
-              // Clear form
-              setCurrentPassword('');
-              setNewPassword('');
-              setConfirmPassword('');
-              setErrors({});
-            },
-          },
-        ]
-      );
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Password changed successfully',
+        onPress: () => {
+          onClose();
+          // Clear form
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setErrors({});
+        },
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
       
@@ -124,7 +121,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
         } else if (errorMessage.includes('New password')) {
           setErrors(prev => ({ ...prev, newPassword: errorMessage }));
         } else {
-          Alert.alert('Error', errorMessage);
+          Toast.show({ type: 'error', text1: 'Error', text2: errorMessage });
         }
       }
     } finally {

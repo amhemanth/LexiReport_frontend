@@ -15,6 +15,7 @@ import { register } from '@/services/auth';
 import { ThemedView } from '@components/ui/ThemedView';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
@@ -79,22 +80,11 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await register({ full_name: fullName, email, password });
-      Alert.alert(
-        'Registration Successful',
-        'Your account has been created. Please log in to continue.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(auth)/login'),
-          },
-        ]
-      );
+      Toast.show({ type: 'success', text1: 'Registration Successful', text2: 'Your account has been created. Please log in to continue.' });
+      router.replace('/(auth)/login');
     } catch (error) {
       console.error('Registration error:', error);
-      Alert.alert(
-        'Registration Failed',
-        error instanceof Error ? error.message : 'Failed to register. Please try again.'
-      );
+      Toast.show({ type: 'error', text1: 'Registration Failed', text2: error instanceof Error ? error.message : 'Failed to register. Please try again.' });
     } finally {
       setLoading(false);
     }

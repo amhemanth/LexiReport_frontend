@@ -14,6 +14,7 @@ import { saveReportOffline, getOfflineReportById } from '@utils/offline';
 import * as FileSystem from 'expo-file-system';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import NetInfo from '@react-native-community/netinfo';
+import Toast from 'react-native-toast-message';
 
 export default function ReportDetailScreen() {
   const { colors } = useTheme();
@@ -79,7 +80,7 @@ export default function ReportDetailScreen() {
       const insightsData = await getReportInsights(Number(id), token);
       setInsights(insightsData.map(i => i.content));
     } catch (error) {
-      Alert.alert('Error', 'Failed to load report');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load report' });
     } finally {
       setLoading(false);
     }
@@ -92,10 +93,10 @@ export default function ReportDetailScreen() {
         setReport(offline);
         setInsights(offline.insights || []);
       } else {
-        Alert.alert('Offline', 'This report is not available offline.');
+        Toast.show({ type: 'info', text1: 'Offline', text2: 'This report is not available offline.' });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load offline report.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load offline report.' });
     } finally {
       setLoading(false);
     }

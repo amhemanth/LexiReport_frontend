@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +14,7 @@ import { useAuth } from '@hooks/useAuth';
 import { ThemedView } from '@components/ui/ThemedView';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
@@ -35,7 +35,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Error', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: error });
       clearMessages();
     }
   }, [error]);

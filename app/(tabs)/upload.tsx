@@ -8,6 +8,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { uploadReport } from '@/services/report';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 export default function UploadScreen() {
   const { colors } = useTheme();
@@ -31,10 +32,10 @@ export default function UploadScreen() {
         type: fileAsset.mimeType || 'application/octet-stream',
       } as any;
       await uploadReport(file, token);
-      Alert.alert('Success', 'Report uploaded successfully!');
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Report uploaded successfully!' });
       router.replace('/(tabs)/reports'); // Go back to reports list
     } catch (error) {
-      Alert.alert('Error', (error as Error).message || 'Failed to upload report');
+      Toast.show({ type: 'error', text1: 'Error', text2: (error as Error).message || 'Failed to upload report' });
     } finally {
       setUploading(false);
     }

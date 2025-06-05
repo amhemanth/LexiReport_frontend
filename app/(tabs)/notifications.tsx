@@ -6,6 +6,7 @@ import { Header } from '@components/Header';
 import { useAuth } from '@hooks/useAuth';
 import { api } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export default function NotificationCenter() {
   const { colors } = useTheme();
@@ -27,7 +28,7 @@ export default function NotificationCenter() {
       });
       setNotifications(response.data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load notifications');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load notifications' });
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,7 @@ export default function NotificationCenter() {
       });
       setNotifications((prev) => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (error) {
-      Alert.alert('Error', 'Failed to mark as read');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to mark as read' });
     } finally {
       setMarking(null);
     }

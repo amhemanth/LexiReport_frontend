@@ -3,6 +3,7 @@ import { Stack, Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@hooks/useTheme';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
   const { colors } = useTheme();
@@ -37,6 +38,7 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
       )}
+      <Toast />
     </Stack>
   );
 }

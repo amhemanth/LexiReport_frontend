@@ -9,6 +9,7 @@ import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
 import { getOfflineReports, removeOfflineReportAndFile } from '@utils/offline';
+import Toast from 'react-native-toast-message';
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
@@ -30,7 +31,7 @@ export default function ReportsScreen() {
       const data = await getReports(token);
       setReports(data.items);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load reports');
+      Toast.show({ type: 'error', text1: 'Error', text2: error.message || 'Failed to load reports' });
     } finally {
       setLoading(false);
     }
@@ -45,9 +46,9 @@ export default function ReportsScreen() {
     try {
       await removeOfflineReportAndFile(id);
       loadOffline();
-      Alert.alert('Removed', 'Report removed from offline storage.');
+      Toast.show({ type: 'success', text1: 'Removed', text2: 'Report removed from offline storage.' });
     } catch (error) {
-      Alert.alert('Error', 'Failed to remove offline report.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to remove offline report.' });
     }
   };
 
