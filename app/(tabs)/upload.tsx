@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
 import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import { uploadReport } from '@/services/report';
+import { uploadReport, ReportUploadMetadata } from '@/services/report';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -14,6 +14,8 @@ export default function UploadScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
   const [uploading, setUploading] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
 
   const handlePickAndUpload = async () => {
     try {
@@ -24,6 +26,7 @@ export default function UploadScreen() {
       if (result.canceled || !result.assets || result.assets.length === 0) return;
       const fileAsset = result.assets[0];
       if (!token) throw new Error('No authentication token');
+      if (!title.trim()) throw new Error('Title is required');
       setUploading(true);
       // Convert to File object for uploadReport
       const file = {
@@ -31,7 +34,11 @@ export default function UploadScreen() {
         name: fileAsset.name,
         type: fileAsset.mimeType || 'application/octet-stream',
       } as any;
-      await uploadReport(file, token);
+      const metadata: ReportUploadMetadata = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+      };
+      await uploadReport(file, metadata, token);
       Toast.show({ type: 'success', text1: 'Success', text2: 'Report uploaded successfully!' });
       router.replace('/(tabs)/reports'); // Go back to reports list
     } catch (error) {
@@ -45,6 +52,22 @@ export default function UploadScreen() {
     <ThemedView style={styles.container}>
       <Header title="Upload" />
       <View style={styles.content}>
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Report Title"
+          placeholderTextColor={colors.text + '80'}
+          value={title}
+          onChangeText={setTitle}
+          editable={!uploading}
+        />
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Description (optional)"
+          placeholderTextColor={colors.text + '80'}
+          value={description}
+          onChangeText={setDescription}
+          editable={!uploading}
+        />
         <TouchableOpacity
           style={[styles.uploadButton, { backgroundColor: colors.primary }]}
           onPress={handlePickAndUpload}
@@ -74,6 +97,15 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  input: {
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 12,
   },
   uploadButton: {
     width: 200,

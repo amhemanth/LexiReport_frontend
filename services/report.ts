@@ -2,13 +2,22 @@ import { AxiosError } from 'axios';
 import { api } from './api';
 import { Report, ReportInsight, PaginatedResponse } from '@models/report';
 
-export const uploadReport = async (file: File, token: string): Promise<Report> => {
+export interface ReportUploadMetadata {
+  title: string;
+  description?: string;
+  report_type_id?: string;
+}
+
+export const uploadReport = async (
+  file: File,
+  metadata: ReportUploadMetadata,
+  token: string
+): Promise<Report> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('title', file.name);
-    
-    const response = await api.post<Report>('/reports/upload', formData, {
+    formData.append('report_in', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    const response = await api.post<Report>('/reports/', formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',
