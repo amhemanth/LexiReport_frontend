@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useTheme } from '@hooks/useTheme';
-import { ThemedView } from '@components/ui/ThemedView';
+import { addUserPermission, setUserPermissions, updateUserRole } from '@/services/user';
 import { Header } from '@components/Header';
-import { Ionicons } from '@expo/vector-icons';
-import { getUserPermissions, updateUserRole, addUserPermission, removeUserPermission } from '@/services/user';
+import { ThemedView } from '@components/ui/ThemedView';
 import { useAuth } from '@hooks/useAuth';
+import { useTheme } from '@hooks/useTheme';
 import { User } from '@models/user';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const AVAILABLE_ROLES = ['admin', 'user'];
 const AVAILABLE_PERMISSIONS = [
@@ -30,7 +29,7 @@ export default function UserManagementScreen() {
     setUsers([]); // Replace with fetched users
   }, []);
 
-  const handleRoleChange = async (userId: number, newRole: 'admin' | 'user') => {
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
     try {
       await updateUserRole(userId, newRole);
       Alert.alert('Success', 'Role updated');
@@ -40,10 +39,10 @@ export default function UserManagementScreen() {
     }
   };
 
-  const handlePermissionToggle = async (userId: number, permission: string, hasPermission: boolean) => {
+  const handlePermissionToggle = async (userId: string, permission: string, hasPermission: boolean) => {
     try {
       if (hasPermission) {
-        await removeUserPermission(userId, permission);
+        await setUserPermissions(userId, [permission]); // need to fix the update user permissions 
       } else {
         await addUserPermission(userId, permission);
       }
