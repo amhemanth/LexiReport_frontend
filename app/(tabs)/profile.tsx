@@ -5,9 +5,11 @@ import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChangePasswordModal } from '@components/ChangePasswordModal';
 import { api } from '@/services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Speech from 'expo-speech';
 
 export default function ProfileScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -18,6 +20,35 @@ export default function ProfileScreen() {
   const [showHelp, setShowHelp] = useState(false);
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [voiceList, setVoiceList] = useState<any[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+
+  useEffect(() => {
+    // Load notification preference
+    AsyncStorage.getItem('notifications_enabled').then(val => {
+      if (val !== null) setNotificationsEnabled(val === 'true');
+    });
+    // Load voice settings
+    (async () => {
+      const voices = await Speech.getAvailableVoicesAsync();
+      setVoiceList(voices);
+      const storedVoice = await AsyncStorage.getItem('tts_voice');
+      const storedLang = await AsyncStorage.getItem('tts_language');
+      const storedSpeed = await AsyncStorage.getItem('tts_speed');
+      if (storedVoice) setSelectedVoice(storedVoice);
+      if (storedLang) setSelectedLanguage(storedLang);
+      if (storedSpeed) setPlaybackSpeed(Number(storedSpeed));
+    })();
+  }, []);
+
+  const handleToggleNotifications = async () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    await AsyncStorage.setItem('notifications_enabled', newValue ? 'true' : 'false');
+  };
 
   const handleLogout = async () => {
     try {
@@ -44,6 +75,19 @@ export default function ProfileScreen() {
     setFullName(user?.full_name || '');
     setEmail(user?.email || '');
     setShowEditProfile(true);
+  };
+
+  const handleSelectVoice = async (voice: string) => {
+    setSelectedVoice(voice);
+    await AsyncStorage.setItem('tts_voice', voice);
+  };
+  const handleSelectLanguage = async (lang: string) => {
+    setSelectedLanguage(lang);
+    await AsyncStorage.setItem('tts_language', lang);
+  };
+  const handleSpeedChange = async (speed: number) => {
+    setPlaybackSpeed(speed);
+    await AsyncStorage.setItem('tts_speed', speed.toString());
   };
 
   return (
@@ -193,6 +237,75 @@ export default function ProfileScreen() {
               <TouchableOpacity style={{ flex: 1, padding: 12, backgroundColor: theme === 'system' ? colors.primary : '#eee', borderRadius: 8 }} onPress={() => setTheme('system')}>
                 <Text style={{ color: theme === 'system' ? '#fff' : colors.text, textAlign: 'center' }}>System</Text>
               </TouchableOpacity>
+            </View>
+            {/* Notification Preferences */}
+            <View style={{ marginTop: 24, marginBottom: 16 }}>
+              <Text style={{ color: colors.text, fontWeight: 'bold', marginBottom: 8 }}>Notifications</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={{ color: colors.text }}>Enable Notifications</Text>
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={handleToggleNotifications}
+                  thumbColor={notificationsEnabled ? colors.primary : colors.border}
+                  trackColor={{ true: colors.primary + '80', false: colors.border }}
+                />
+              </View>
+            </View>
+            {/* Voice Settings */}
+            <View style={{ marginTop: 24, marginBottom: 16 }}>
+              <Text style={{ color: colors.text, fontWeight: 'bold', marginBottom: 8 }}>Voice Settings</Text>
+              {/* Voice Picker */}
+              <Text style={{ color: colors.text, marginBottom: 4 }}>Voice</Text>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8 }}>
+                {voiceList.length === 0 ? (
+                  <Text style={{ color: colors.text + '80', padding: 8 }}>Loading voices...</Text>
+                ) : (
+                  voiceList.slice(0, 5).map((v, idx) => (
+                    <TouchableOpacity
+                      key={v.identifier || idx}
+                      style={{ padding: 8, backgroundColor: selectedVoice === v.identifier ? colors.primary + '30' : 'transparent' }}
+                      onPress={() => handleSelectVoice(v.identifier)}
+                    >
+                      <Text style={{ color: colors.text }}>{v.name} ({v.language})</Text>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+              {/* Language Picker */}
+              <Text style={{ color: colors.text, marginBottom: 4 }}>Language</Text>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8 }}>
+                {voiceList.length === 0 ? (
+                  <Text style={{ color: colors.text + '80', padding: 8 }}>Loading languages...</Text>
+                ) : (
+                  Array.from(new Set(voiceList.map(v => v.language))).slice(0, 5).map((lang, idx) => (
+                    <TouchableOpacity
+                      key={lang || idx}
+                      style={{ padding: 8, backgroundColor: selectedLanguage === lang ? colors.primary + '30' : 'transparent' }}
+                      onPress={() => handleSelectLanguage(lang)}
+                    >
+                      <Text style={{ color: colors.text }}>{lang}</Text>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+              {/* Playback Speed */}
+              <Text style={{ color: colors.text, marginBottom: 4 }}>Playback Speed</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                {[1.0, 1.25, 1.5].map((speed) => (
+                  <TouchableOpacity
+                    key={speed}
+                    style={{
+                      padding: 8,
+                      borderRadius: 8,
+                      backgroundColor: playbackSpeed === speed ? colors.primary : colors.border,
+                      marginRight: 8,
+                    }}
+                    onPress={() => handleSpeedChange(speed)}
+                  >
+                    <Text style={{ color: playbackSpeed === speed ? '#fff' : colors.text }}>{speed}x</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
             <TouchableOpacity style={[{ padding: 16, backgroundColor: colors.border, borderRadius: 8 }]} onPress={() => setShowSettings(false)}>
               <Text style={{ fontSize: 16, color: colors.text, textAlign: 'center' }}>Close</Text>

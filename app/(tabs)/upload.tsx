@@ -1,11 +1,44 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
 import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadReport } from '@/services/report';
+import { useAuth } from '@hooks/useAuth';
+import { router } from 'expo-router';
 
 export default function UploadScreen() {
   const { colors } = useTheme();
+  const { token } = useAuth();
+  const [uploading, setUploading] = useState(false);
+
+  const handlePickAndUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+      const fileAsset = result.assets[0];
+      if (!token) throw new Error('No authentication token');
+      setUploading(true);
+      // Convert to File object for uploadReport
+      const file = {
+        uri: fileAsset.uri,
+        name: fileAsset.name,
+        type: fileAsset.mimeType || 'application/octet-stream',
+      } as any;
+      await uploadReport(file, token);
+      Alert.alert('Success', 'Report uploaded successfully!');
+      router.replace('/(tabs)/reports'); // Go back to reports list
+    } catch (error) {
+      Alert.alert('Error', (error as Error).message || 'Failed to upload report');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -13,18 +46,19 @@ export default function UploadScreen() {
       <View style={styles.content}>
         <TouchableOpacity
           style={[styles.uploadButton, { backgroundColor: colors.primary }]}
-          onPress={() => {
-            // TODO: Implement file upload
-          }}
+          onPress={handlePickAndUpload}
+          disabled={uploading}
         >
-          <Ionicons name="cloud-upload" size={32} color={colors.background} />
-          <Text style={[styles.uploadText, { color: colors.background }]}>
-            Upload Document
-          </Text>
+          {uploading ? (
+            <ActivityIndicator size="large" color={colors.background} />
+          ) : (
+            <>
+              <Ionicons name="cloud-upload" size={32} color={colors.background} />
+              <Text style={[styles.uploadText, { color: colors.background }]}>Upload Document</Text>
+            </>
+          )}
         </TouchableOpacity>
-        <Text style={[styles.helpText, { color: colors.text }]}>
-          Supported formats: PDF, DOCX, TXT
-        </Text>
+        <Text style={[styles.helpText, { color: colors.text }]}>Supported formats: PDF, DOCX, TXT</Text>
       </View>
     </ThemedView>
   );

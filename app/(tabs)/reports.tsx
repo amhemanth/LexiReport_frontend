@@ -8,15 +8,18 @@ import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
+import { getOfflineReports, removeOfflineReportAndFile } from '@utils/offline';
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
+  const [offlineIds, setOfflineIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadReports();
+    loadOffline();
   }, []);
 
   const loadReports = async () => {
@@ -26,10 +29,25 @@ export default function ReportsScreen() {
       }
       const data = await getReports(token);
       setReports(data.items);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load reports');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to load reports');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOffline = async () => {
+    const offline = await getOfflineReports();
+    setOfflineIds(offline.map((r: any) => r.id));
+  };
+
+  const handleRemoveOffline = async (id: number) => {
+    try {
+      await removeOfflineReportAndFile(id);
+      loadOffline();
+      Alert.alert('Removed', 'Report removed from offline storage.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to remove offline report.');
     }
   };
 
@@ -37,6 +55,18 @@ export default function ReportsScreen() {
     <TouchableOpacity
       style={[styles.reportItem, { backgroundColor: colors.card }]}
       onPress={() => router.push(`/(app)/report/${item.id}`)}
+      onLongPress={() => {
+        if (offlineIds.includes(item.id)) {
+          Alert.alert(
+            'Remove Offline',
+            'Remove this report from offline storage?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Remove', style: 'destructive', onPress: () => handleRemoveOffline(item.id) },
+            ]
+          );
+        }
+      }}
     >
       <View style={styles.reportHeader}>
         <View style={styles.reportIconContainer}>
@@ -50,6 +80,9 @@ export default function ReportsScreen() {
             {item.report_type}
           </Text>
         </View>
+        {offlineIds.includes(item.id) && (
+          <Ionicons name="cloud-download" size={20} color={colors.primary} style={{ marginLeft: 8 }} />
+        )}
         <Ionicons name="chevron-forward" size={24} color={colors.text + '60'} />
       </View>
       <View style={[styles.reportFooter, { borderTopColor: colors.border }]}>
