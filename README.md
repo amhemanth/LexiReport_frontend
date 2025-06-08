@@ -1,104 +1,65 @@
 # LexiReport Frontend
 
-The mobile frontend for LexiReport, built with React Native and Expo.
+The mobile and web frontend for LexiReport, built with React Native and Expo.
 
-## Features
-
+## Overview
 - 📱 Cross-platform (iOS, Android, Web)
-- 🌓 Dark/Light mode support
-- 🔐 Secure authentication (JWT)
-- 📊 Report management and AI-powered insights
-- 📤 File upload and download
-- 🎨 Modern UI/UX with theming
-
-## Tech Stack
-
-- React Native (Expo)
-- TypeScript
-- Zustand (State Management)
-- Expo Router (Navigation)
-- Axios (API communication)
-
-## Setup
-
-### Prerequisites
-- Node.js 16+
-- npm or yarn
-- Expo CLI
-- iOS Simulator (for iOS development)
-- Android Studio (for Android development)
-
-### Installation
-
-1. Install dependencies:
-```bash
-npm install
-```
-2. Start the development server:
-```bash
-npx expo start
-```
-3. Run on specific platform:
-```bash
-# iOS
-npx expo run:ios
-# Android
-npx expo run:android
-# Web
-npx expo start:web
-```
+- 🌓 Dark/Light mode
+- 🔐 Secure authentication (JWT, RBAC)
+- 📊 AI-powered report management, insights, and Q&A
+- 📤 File upload, download, and sharing
+- 🔔 Notifications, offline mode, user preferences
+- 🤝 Collaboration (sharing, comments, tags)
 
 ## Project Structure
-
 ```
 frontend/
-├── app/
-│   ├── (app)/
-│   ├── components/
-│   ├── hooks/
-│   └── lib/
-├── assets/
-├── app.json
-├── babel.config.js
-├── tsconfig.json
-└── README.md
+├── app/           # Expo Router app directory
+│   ├── (auth)/    # Authentication screens
+│   ├── (tabs)/    # Main app tabs
+│   └── _layout.tsx
+├── components/    # Reusable components
+├── hooks/         # Custom React hooks
+├── services/      # API and business logic
+├── store/         # Zustand state management
+├── models/        # TypeScript models/types
+├── utils/         # Helper functions
+├── config/        # App configuration
+├── constants/     # Static values (permissions, colors)
+└── assets/        # Images and static assets
 ```
 
-## Development
+## Documentation
+- [Architecture](../docs/ARCHITECTURE.md)
+- [API Reference](../docs/API_REFERENCE.md)
+- [AI Implementation](../docs/AI_IMPLEMENTATION_PLAN.md)
+- [Deployment](../docs/DEPLOYMENT.md)
+- [Testing](../docs/testing.md)
 
-- Follow TypeScript and React Native best practices
-- Use Zustand for global state
-- Use Expo Router for navigation
-- Support for dark/light mode
-
-## Testing
-
+## Quickstart
 ```bash
-npm test
-npm test -- --coverage
+npm install
+npx expo start
 ```
 
-## Building for Production
-
-```bash
-eas build --platform ios   # iOS
-eas build --platform android # Android
-eas build --platform web    # Web
-```
+- iOS: `npx expo run:ios`
+- Android: `npx expo run:android`
+- Web: `npx expo start:web`
 
 ## Environment Variables
+Create a `.env` file in the root of the frontend directory:
+```
+API_URL=http://localhost:8000/api/v1
+APP_ENV=development
+```
 
-Create a `.env` file in the root of the frontend directory with:
-- `API_URL` — Backend API URL (e.g., http://localhost:8000/api/v1)
-- `APP_ENV` — Environment (development/production)
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Run tests
-4. Submit a pull request
+## Achievements (2025)
+- ✅ Modern, cross-platform frontend (Expo/React Native)
+- ✅ Secure authentication (JWT, RBAC)
+- ✅ Report upload, management, and AI-powered insights
+- ✅ Voice-over, Q&A, and BI integration (MVP)
+- ✅ Offline mode, notifications, and user preferences
+- ✅ Collaboration (sharing, comments, tags)
 
 ## License
-
 MIT License.

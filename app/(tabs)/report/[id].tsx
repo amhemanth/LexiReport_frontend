@@ -15,6 +15,7 @@ import * as FileSystem from 'expo-file-system';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import NetInfo from '@react-native-community/netinfo';
 import Toast from 'react-native-toast-message';
+import Voice from '@react-native-voice/voice';
 
 export default function ReportDetailScreen() {
   const { colors } = useTheme();
@@ -49,6 +50,8 @@ export default function ReportDetailScreen() {
   const [tagsLoading, setTagsLoading] = useState(true);
   const [addingTag, setAddingTag] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceCommand, setVoiceCommand] = useState('');
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -67,8 +70,11 @@ export default function ReportDetailScreen() {
     loadComments();
     loadShares();
     loadTags();
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechEnd = onSpeechEnd;
     return () => {
       Speech.stop();
+      Voice.destroy().then(Voice.removeAllListeners);
     };
   }, [id, isOfflineMode]);
 
@@ -295,6 +301,68 @@ export default function ReportDetailScreen() {
     }
   };
 
+  const onSpeechResults = (e: any) => {
+    if (e.value && e.value.length > 0) {
+      const command = e.value[0].toLowerCase();
+      setVoiceCommand(command);
+      handleVoiceCommand(command);
+    }
+  };
+
+  const onSpeechEnd = () => {
+    setIsListening(false);
+  };
+
+  const startListening = async () => {
+    setVoiceCommand('');
+    setIsListening(true);
+    try {
+      await Voice.start('en-US');
+    } catch (e) {
+      setIsListening(false);
+      Toast.show({ type: 'error', text1: 'Voice Error', text2: 'Could not start voice recognition.' });
+    }
+  };
+
+  const stopListening = async () => {
+    setIsListening(false);
+    try {
+      await Voice.stop();
+    } catch {}
+  };
+
+  const handleVoiceCommand = (command: string) => {
+    if (command.includes('play')) {
+      if (playingIndex !== null) return; // already playing
+      handlePlay(0);
+      Toast.show({ type: 'info', text1: 'Voice Command', text2: 'Playing insights.' });
+    } else if (command.includes('pause')) {
+      handlePause();
+      Toast.show({ type: 'info', text1: 'Voice Command', text2: 'Paused.' });
+    } else if (command.includes('next')) {
+      if (playingIndex !== null && playingIndex < insights.length - 1) {
+        handlePlay(playingIndex + 1);
+        Toast.show({ type: 'info', text1: 'Voice Command', text2: 'Next insight.' });
+      }
+    } else if (command.includes('previous')) {
+      if (playingIndex !== null && playingIndex > 0) {
+        handlePlay(playingIndex - 1);
+        Toast.show({ type: 'info', text1: 'Voice Command', text2: 'Previous insight.' });
+      }
+    } else if (command.match(/highlight (section|insight) (\d+)/)) {
+      const match = command.match(/highlight (section|insight) (\d+)/);
+      if (match) {
+        const idx = parseInt(match[2], 10) - 1;
+        if (idx >= 0 && idx < insights.length) {
+          setPlayingIndex(idx);
+          Toast.show({ type: 'info', text1: 'Voice Command', text2: `Highlighted insight ${idx + 1}.` });
+        }
+      }
+    } else {
+      Toast.show({ type: 'info', text1: 'Voice Command', text2: `Unrecognized command: ${command}` });
+    }
+  };
+
   if (loading) {
     return (
       <ThemedView style={styles.centered}>
@@ -306,7 +374,7 @@ export default function ReportDetailScreen() {
   if (!report) {
     return (
       <ThemedView style={styles.centered}>
-        <Text style={{ color: colors.text }}>Report not found.</Text>
+        <Text style={{ color: colors.textSecondary }}>Report not found.</Text>
       </ThemedView>
     );
   }
@@ -317,24 +385,24 @@ export default function ReportDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {isOfflineMode && (
           <View style={{ backgroundColor: colors.error, padding: 8, alignItems: 'center' }}>
-            <Text style={{ color: '#fff' }}>Offline Mode: Viewing local data</Text>
+            <Text style={{ color: colors.textSecondary }}>Offline Mode: Viewing local data</Text>
           </View>
         )}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Metadata</Text>
-        <Text style={{ color: colors.text }}>Type: {report.report_type}</Text>
-        <Text style={{ color: colors.text }}>Created: {new Date(report.created_at).toLocaleString()}</Text>
+        <Text style={{ color: colors.textSecondary }}>Type: {report.report_type}</Text>
+        <Text style={{ color: colors.textSecondary }}>Created: {new Date(report.created_at).toLocaleString()}</Text>
         {/* Add more metadata as needed */}
 
         <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>AI Insights</Text>
         {insights.length === 0 ? (
-          <Text style={{ color: colors.text + '80' }}>No insights available.</Text>
+          <Text style={{ color: colors.textTertiary }}>No insights available.</Text>
         ) : (
           insights.map((insight, idx) => (
             <View
               key={idx}
               style={[styles.insightBox, playingIndex === idx && { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primary + '10' }]}
             >
-              <Text style={{ color: colors.text }}>{insight}</Text>
+              <Text style={{ color: colors.textSecondary }}>{insight}</Text>
               <View style={styles.audioControls}>
                 {playingIndex === idx && !isPaused ? (
                   <TouchableOpacity onPress={handlePause} style={styles.audioButton}>
@@ -352,7 +420,7 @@ export default function ReportDetailScreen() {
                 )}
                 <TouchableOpacity onPress={handleSpeedChange} style={styles.audioButton}>
                   <Ionicons name="speedometer-outline" size={24} color={colors.primary} />
-                  <Text style={{ color: colors.primary, fontSize: 12, marginLeft: 4 }}>{playbackSpeed}x</Text>
+                  <Text style={{ color: colors.textSecondary, fontSize: 12, marginLeft: 4 }}>{playbackSpeed}x</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -490,13 +558,13 @@ export default function ReportDetailScreen() {
           {sharesLoading ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : shares.length === 0 ? (
-            <Text style={{ color: colors.text + '80' }}>Not shared with anyone.</Text>
+            <Text style={{ color: colors.textTertiary }}>Not shared with anyone.</Text>
           ) : (
             shares.map((s, idx) => (
               <View key={s.id || idx} style={styles.commentBox}>
-                <Text style={{ color: colors.text, fontWeight: 'bold' }}>{s.shared_with || 'User'}</Text>
+                <Text style={{ color: colors.textSecondary, fontWeight: 'bold' }}>{s.shared_with || 'User'}</Text>
                 <Text style={{ color: colors.text }}>{s.permission}</Text>
-                <Text style={{ color: colors.text + '60', fontSize: 12 }}>Expires: {s.expires_at ? new Date(s.expires_at).toLocaleString() : 'Never'}</Text>
+                <Text style={{ color: colors.textTertiary, fontSize: 12 }}>Expires: {s.expires_at ? new Date(s.expires_at).toLocaleString() : 'Never'}</Text>
               </View>
             ))
           )}
@@ -508,7 +576,7 @@ export default function ReportDetailScreen() {
           {tagsLoading ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : tags.length === 0 ? (
-            <Text style={{ color: colors.text + '80' }}>No tags yet.</Text>
+            <Text style={{ color: colors.textTertiary }}>No tags yet.</Text>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
               {tags.map((t, idx) => (
@@ -547,13 +615,13 @@ export default function ReportDetailScreen() {
           {commentsLoading ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : comments.length === 0 ? (
-            <Text style={{ color: colors.text + '80' }}>No comments yet.</Text>
+            <Text style={{ color: colors.textTertiary }}>No comments yet.</Text>
           ) : (
             comments.map((c, idx) => (
               <View key={c.id || idx} style={styles.commentBox}>
-                <Text style={{ color: colors.text, fontWeight: 'bold' }}>{c.user_name || 'User'}</Text>
-                <Text style={{ color: colors.text }}>{c.content}</Text>
-                <Text style={{ color: colors.text + '60', fontSize: 12 }}>{new Date(c.created_at).toLocaleString()}</Text>
+                <Text style={{ color: colors.textSecondary, fontWeight: 'bold' }}>{c.user_name || 'User'}</Text>
+                <Text style={{ color: colors.textSecondary }}>{c.content}</Text>
+                <Text style={{ color: colors.textTertiary, fontSize: 12 }}>{new Date(c.created_at).toLocaleString()}</Text>
               </View>
             ))
           )}
@@ -579,6 +647,31 @@ export default function ReportDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Floating mic button for voice commands */}
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            bottom: 32,
+            right: 32,
+            backgroundColor: isListening ? colors.error : colors.primary,
+            borderRadius: 32,
+            width: 64,
+            height: 64,
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            elevation: 8,
+          }}
+          onPress={isListening ? stopListening : startListening}
+        >
+          <Ionicons name={isListening ? 'mic-off' : 'mic'} size={32} color="#fff" />
+        </TouchableOpacity>
+        {voiceCommand ? (
+          <View style={{ position: 'absolute', bottom: 110, right: 32, backgroundColor: colors.card, padding: 12, borderRadius: 8, elevation: 8 }}>
+            <Text style={{ color: colors.text }}>Heard: {voiceCommand}</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </ThemedView>
   );

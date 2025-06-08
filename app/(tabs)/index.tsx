@@ -5,6 +5,8 @@ import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@hooks/useAuth';
+import { PermissionGate } from '@components/PermissionGate';
+import { PERMISSIONS } from '@/constants/Permissions';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -36,7 +38,7 @@ export default function HomeScreen() {
           <View style={styles.quickActions}>
             <TouchableOpacity 
               style={[styles.actionCard, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/(app)/upload')}
+              onPress={() => router.push('/(tabs)/upload')}
             >
               <Ionicons name="cloud-upload" size={32} color={colors.primary} />
               <Text style={[styles.actionTitle, { color: colors.text }]}>
@@ -49,7 +51,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity 
               style={[styles.actionCard, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/(app)/reports')}
+              onPress={() => router.push('/(tabs)/reports')}
             >
               <Ionicons name="document-text" size={32} color={colors.primary} />
               <Text style={[styles.actionTitle, { color: colors.text }]}>
@@ -60,16 +62,18 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
 
-            {user?.role === 'admin' && (
+            <PermissionGate permission={PERMISSIONS.MANAGE_USERS}>
               <TouchableOpacity 
                 style={[styles.actionCard, { backgroundColor: colors.card }]}
                 onPress={() => router.push('/(tabs)/user-management')}
+                accessibilityLabel="Manage Users"
+                accessibilityRole="button"
               >
                 <Ionicons name="people" size={32} color={colors.primary} />
                 <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Users</Text>
                 <Text style={[styles.actionSubtitle, { color: colors.text + '80' }]}>Admin: manage roles & permissions</Text>
               </TouchableOpacity>
-            )}
+            </PermissionGate>
           </View>
         </View>
 
@@ -121,18 +125,21 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 24,
+    marginBottom: 24,
   },
   actionCard: {
     flex: 1,
-    padding: 20,
-    borderRadius: 12,
+    padding: 28,
+    borderRadius: 16,
     alignItems: 'center',
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.13,
+    shadowRadius: 6,
+    minWidth: 120,
+    minHeight: 160,
   },
   actionTitle: {
     fontSize: 16,

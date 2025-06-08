@@ -6,6 +6,8 @@ import { useTheme } from '@hooks/useTheme';
 import { User } from '@models/user';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PermissionGate } from '@components/PermissionGate';
+import { PERMISSIONS } from '@/constants/Permissions';
 
 const AVAILABLE_ROLES = ['admin', 'user'];
 const AVAILABLE_PERMISSIONS = [
@@ -53,43 +55,39 @@ export default function UserManagementScreen() {
     }
   };
 
-  if (!currentUser || currentUser.role !== 'admin') {
-    return (
+  return (
+    <PermissionGate permission={PERMISSIONS.MANAGE_USERS} fallback={
       <ThemedView style={styles.container}>
         <Header title="User Management" />
         <View style={styles.content}>
           <Text style={{ color: colors.text }}>Access denied. Admins only.</Text>
         </View>
       </ThemedView>
-    );
-  }
-
-  return (
-    <ThemedView style={styles.container}>
-      <Header title="User Management" />
-      <ScrollView style={styles.content}>
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : users.length === 0 ? (
-          <Text style={{ color: colors.text }}>No users found.</Text>
-        ) : (
-          users.map((user) => (
-            <View key={user.id} style={[styles.userCard, { borderColor: colors.border }]}> 
-              <Text style={[styles.userName, { color: colors.text }]}>{user.full_name || user.email}</Text>
-              <Text style={[styles.userEmail, { color: colors.text + '80' }]}>{user.email}</Text>
-              <View style={styles.roleRow}>
-                <Text style={{ color: colors.text }}>Role:</Text>
-                {AVAILABLE_ROLES.map((role) => (
-                  <TouchableOpacity
-                    key={role}
-                    style={[styles.roleButton, user.role === role && { backgroundColor: colors.primary }]}
-                    onPress={() => handleRoleChange(user.id, role as 'admin' | 'user')}
-                  >
-                    <Text style={{ color: user.role === role ? '#fff' : colors.text }}>{role.toUpperCase()}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={styles.permissionsRow}>
+    }>
+      <ThemedView style={styles.container}>
+        <Header title="User Management" />
+        <ScrollView style={styles.content}>
+          {loading ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : users.length === 0 ? (
+            <Text style={{ color: colors.text }}>No users found.</Text>
+          ) : (
+            users.map((user) => (
+              <View key={user.id} style={[styles.userCard, { borderColor: colors.border }]}> 
+                <Text style={[styles.userName, { color: colors.text }]}>{user.full_name || user.email}</Text>
+                <Text style={[styles.userEmail, { color: colors.text + '80' }]}>{user.email}</Text>
+                <View style={styles.roleRow}>
+                  <Text style={{ color: colors.text }}>Role:</Text>
+                  {AVAILABLE_ROLES.map((role) => (
+                    <TouchableOpacity
+                      key={role}
+                      style={[styles.roleButton, user.role === role && { backgroundColor: colors.primary }]}
+                      onPress={() => handleRoleChange(user.id, role as 'admin' | 'user')}
+                    >
+                      <Text style={{ color: user.role === role ? '#fff' : colors.text }}>{role.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
                 <Text style={{ color: colors.text }}>Permissions:</Text>
                 {AVAILABLE_PERMISSIONS.map((perm) => (
                   <TouchableOpacity
@@ -101,11 +99,11 @@ export default function UserManagementScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
-    </ThemedView>
+            ))
+          )}
+        </ScrollView>
+      </ThemedView>
+    </PermissionGate>
   );
 }
 

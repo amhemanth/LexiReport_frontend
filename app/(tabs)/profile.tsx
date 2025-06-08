@@ -11,6 +11,8 @@ import { api } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
 import Toast from 'react-native-toast-message';
+import { PermissionGate } from '@components/PermissionGate';
+import { PERMISSIONS } from '@/constants/Permissions';
 
 export default function ProfileScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -26,6 +28,8 @@ export default function ProfileScreen() {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [showCloudTTS, setShowCloudTTS] = useState(false);
+  const [cloudTTSLang, setCloudTTSLang] = useState('');
 
   useEffect(() => {
     // Load notification preference
@@ -117,12 +121,12 @@ export default function ProfileScreen() {
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Account
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24, marginBottom: 16, fontSize: 22, fontWeight: 'bold' }]}>Account</Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
             onPress={openEditProfile}
+            accessibilityLabel="Edit profile"
+            accessibilityRole="button"
           >
             <Ionicons name="person-outline" size={24} color={colors.text} />
             <Text style={[styles.menuText, { color: colors.text }]}>Edit Profile</Text>
@@ -131,6 +135,8 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
             onPress={() => setShowSettings(true)}
+            accessibilityLabel="Open settings"
+            accessibilityRole="button"
           >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
             <Text style={[styles.menuText, { color: colors.text }]}>Settings</Text>
@@ -139,7 +145,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Permissions Section - Only show for admin users */}
-        {user?.role === 'admin' && (
+        <PermissionGate permission={PERMISSIONS.MANAGE_USERS}>
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Permissions</Text>
             {user?.permissions?.map((permission, index) => (
@@ -149,16 +155,16 @@ export default function ProfileScreen() {
               </View>
             ))}
           </View>
-        )}
+        </PermissionGate>
 
         {/* Security Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Security
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24, marginBottom: 16, fontSize: 22, fontWeight: 'bold' }]}>Security</Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
             onPress={() => setShowChangePassword(true)}
+            accessibilityLabel="Change password"
+            accessibilityRole="button"
           >
             <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
             <Text style={[styles.menuText, { color: colors.text }]}>
@@ -170,12 +176,12 @@ export default function ProfileScreen() {
 
         {/* Support Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Support
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24, marginBottom: 16, fontSize: 22, fontWeight: 'bold' }]}>Support</Text>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
             onPress={() => setShowHelp(true)}
+            accessibilityLabel="Help and support"
+            accessibilityRole="button"
           >
             <Ionicons name="help-circle-outline" size={24} color={colors.text} />
             <Text style={[styles.menuText, { color: colors.text }]}>Help & Support</Text>
@@ -184,7 +190,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error, marginTop: 24, marginBottom: 24 }]} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error, marginTop: 32, marginBottom: 32 }]} onPress={handleLogout} accessibilityLabel="Logout" accessibilityRole="button">
           <Ionicons name="log-out-outline" size={24} color="#fff" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -257,38 +263,56 @@ export default function ProfileScreen() {
               <Text style={{ color: colors.text, fontWeight: 'bold', marginBottom: 8 }}>Voice Settings</Text>
               {/* Voice Picker */}
               <Text style={{ color: colors.text, marginBottom: 4 }}>Voice</Text>
-              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8 }}>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8, maxHeight: 160 }}>
                 {voiceList.length === 0 ? (
                   <Text style={{ color: colors.text + '80', padding: 8 }}>Loading voices...</Text>
                 ) : (
-                  voiceList.slice(0, 5).map((v, idx) => (
-                    <TouchableOpacity
-                      key={v.identifier || idx}
-                      style={{ padding: 8, backgroundColor: selectedVoice === v.identifier ? colors.primary + '30' : 'transparent' }}
-                      onPress={() => handleSelectVoice(v.identifier)}
-                    >
-                      <Text style={{ color: colors.text }}>{v.name} ({v.language})</Text>
-                    </TouchableOpacity>
-                  ))
+                  <ScrollView style={{ maxHeight: 160 }}>
+                    {voiceList.map((v, idx) => (
+                      <TouchableOpacity
+                        key={v.identifier || idx}
+                        style={{ padding: 8, backgroundColor: selectedVoice === v.identifier ? colors.primary + '30' : 'transparent' }}
+                        onPress={() => handleSelectVoice(v.identifier)}
+                      >
+                        <Text style={{ color: colors.textSecondary }}>{v.name} ({v.language})</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 )}
               </View>
               {/* Language Picker */}
               <Text style={{ color: colors.text, marginBottom: 4 }}>Language</Text>
-              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8 }}>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 8, maxHeight: 120 }}>
                 {voiceList.length === 0 ? (
-                  <Text style={{ color: colors.text + '80', padding: 8 }}>Loading languages...</Text>
+                  <Text style={{ color: colors.textSecondary, padding: 8 }}>Loading languages...</Text>
                 ) : (
-                  Array.from(new Set(voiceList.map(v => v.language))).slice(0, 5).map((lang, idx) => (
-                    <TouchableOpacity
-                      key={lang || idx}
-                      style={{ padding: 8, backgroundColor: selectedLanguage === lang ? colors.primary + '30' : 'transparent' }}
-                      onPress={() => handleSelectLanguage(lang)}
-                    >
-                      <Text style={{ color: colors.text }}>{lang}</Text>
-                    </TouchableOpacity>
-                  ))
+                  <ScrollView style={{ maxHeight: 120 }}>
+                    {Array.from(new Set(voiceList.map(v => v.language))).map((lang, idx) => (
+                      <TouchableOpacity
+                        key={lang || idx}
+                        style={{ padding: 8, backgroundColor: selectedLanguage === lang ? colors.primary + '30' : 'transparent' }}
+                        onPress={() => handleSelectLanguage(lang)}
+                      >
+                        <Text style={{ color: colors.textSecondary }}>{lang}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 )}
               </View>
+              {/* Cloud TTS Fallback */}
+              {selectedLanguage && !voiceList.some(v => v.language === selectedLanguage) && (
+                <TouchableOpacity onPress={() => setShowCloudTTS(true)} style={{ marginBottom: 8, padding: 8, backgroundColor: colors.primary + '20', borderRadius: 8 }}>
+                  <Text style={{ color: colors.textSecondary }}>Selected language not available on device. Use cloud TTS?</Text>
+                </TouchableOpacity>
+              )}
+              {showCloudTTS && (
+                <View style={{ marginBottom: 8, padding: 8, backgroundColor: colors.card, borderRadius: 8 }}>
+                  <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Cloud TTS fallback would be used for language: {selectedLanguage}</Text>
+                  <TouchableOpacity onPress={() => setShowCloudTTS(false)} style={{ alignSelf: 'flex-end', padding: 8 }}>
+                    <Text style={{ color: colors.textSecondary }}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               {/* Playback Speed */}
               <Text style={{ color: colors.text, marginBottom: 4 }}>Playback Speed</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
@@ -303,13 +327,13 @@ export default function ProfileScreen() {
                     }}
                     onPress={() => handleSpeedChange(speed)}
                   >
-                    <Text style={{ color: playbackSpeed === speed ? '#fff' : colors.text }}>{speed}x</Text>
+                    <Text style={{ color: playbackSpeed === speed ? '#fff' : colors.textSecondary }}>{speed}x</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
             <TouchableOpacity style={[{ padding: 16, backgroundColor: colors.border, borderRadius: 8 }]} onPress={() => setShowSettings(false)}>
-              <Text style={{ fontSize: 16, color: colors.text, textAlign: 'center' }}>Close</Text>
+              <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center' }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -328,7 +352,7 @@ export default function ProfileScreen() {
               {/* Add more help content as needed */}
             </ScrollView>
             <TouchableOpacity style={[{ padding: 16, backgroundColor: colors.border, borderRadius: 8, marginTop: 16 }]} onPress={() => setShowHelp(false)}>
-              <Text style={{ fontSize: 16, color: colors.text, textAlign: 'center' }}>Close</Text>
+              <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center' }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>

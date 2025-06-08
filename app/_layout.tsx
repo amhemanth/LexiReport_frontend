@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@hooks/useTheme';
 import Toast from 'react-native-toast-message';
+import { View } from 'react-native';
 
 export default function RootLayout() {
   const { colors } = useTheme();
@@ -23,22 +24,24 @@ export default function RootLayout() {
   };
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {isAuthenticated ? (
-        <Stack.Screen 
-          name="(tabs)" 
-          options={{
-            headerShown: false,
-            header: () => null,
-          }}
-        />
-      ) : (
-        <Stack.Screen 
-          name="(auth)" 
-          options={{ headerShown: false }}
-        />
-      )}
+    <View style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          <Stack.Screen 
+            name="(tabs)" 
+            options={{
+              headerShown: false,
+              header: () => null,
+            }}
+          />
+        ) : (
+          <Stack.Screen 
+            name="(auth)" 
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack>
       <Toast />
-    </Stack>
+    </View>
   );
 }

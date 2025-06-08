@@ -60,27 +60,25 @@ export default function NotificationCenter() {
           data={notifications}
           keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={[styles.notificationBox, { backgroundColor: item.read ? colors.card : colors.primary + '10' }]}> 
-              <Text style={[styles.title, { color: colors.text }]}>{item.title || 'Notification'}</Text>
-              <Text style={{ color: colors.text + '80', marginBottom: 8 }}>{item.body || item.message}</Text>
-              <Text style={{ color: colors.text + '60', fontSize: 12 }}>{new Date(item.created_at).toLocaleString()}</Text>
-              {!item.read && (
-                <TouchableOpacity
-                  style={[styles.markButton, { backgroundColor: colors.primary }]}
-                  onPress={() => markAsRead(item.id)}
-                  disabled={marking === item.id}
-                >
-                  {marking === item.id ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Ionicons name="checkmark-done" size={18} color="#fff" />
-                  )}
-                  <Text style={{ color: '#fff', marginLeft: 6 }}>Mark as Read</Text>
-                </TouchableOpacity>
-              )}
+            <View style={[styles.notificationCard, { backgroundColor: item.read ? colors.card : colors.primary + '10', borderColor: colors.border }]}> 
+              <Text style={[styles.notificationTitle, { color: colors.text, fontWeight: item.read ? 'normal' : 'bold' }]}>{item.title}</Text>
+              <Text style={[styles.notificationBody, { color: colors.text + 'B0' }]}>{item.body}</Text>
+              <View style={styles.cardActions}>
+                {!item.read && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: colors.primary }]}
+                    onPress={() => markAsRead(item.id)}
+                    accessibilityLabel={`Mark notification ${item.title} as read`}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="checkmark-done" size={20} color={colors.background} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 24, gap: 20 }}
+          ListEmptyComponent={<Text style={{ color: colors.text, textAlign: 'center', marginTop: 32 }}>No notifications found.</Text>}
         />
       )}
     </ThemedView>
@@ -91,24 +89,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  notificationBox: {
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 1,
+  notificationCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  title: {
-    fontWeight: 'bold',
+  notificationTitle: {
     fontSize: 16,
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  markButton: {
+  notificationBody: {
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  cardActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    gap: 16,
     marginTop: 8,
+  },
+  actionButton: {
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44,
+    minHeight: 44,
   },
 }); 
