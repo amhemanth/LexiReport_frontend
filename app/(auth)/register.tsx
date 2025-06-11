@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
-import { register } from '@services/auth';
+import { authService } from '@services/auth';
 import { ThemedView } from '@components/ui/ThemedView';
 
 export default function RegisterScreen() {
@@ -21,6 +21,7 @@ export default function RegisterScreen() {
   const { colors } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<{
     fullName?: string;
     email?: string;
+    username?: string;
     password?: string;
     confirmPassword?: string;
   }>({});
@@ -36,22 +38,54 @@ export default function RegisterScreen() {
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
 
+    // Full name validation
     if (!fullName.trim()) {
       newErrors.fullName = 'Full name is required';
+    } else if (fullName.length < 2 || fullName.length > 100) {
+      newErrors.fullName = 'Full name must be between 2 and 100 characters';
+    } else if (!/^[a-zA-Z\s\-\.']+$/.test(fullName)) {
+      newErrors.fullName = 'Full name can only contain letters, spaces, hyphens, periods, and apostrophes';
     }
 
+    // Email validation
     if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    // Username validation
+    if (username) {
+      if (username.length < 3 || username.length > 50) {
+        newErrors.username = 'Username must be between 3 and 50 characters';
+      } else if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+        newErrors.username = 'Username can only contain letters, numbers, dots, underscores, and hyphens';
+      }
     }
 
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else {
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+      if (!hasUpperCase) {
+        newErrors.password = 'Password must contain at least one uppercase letter';
+      } else if (!hasLowerCase) {
+        newErrors.password = 'Password must contain at least one lowercase letter';
+      } else if (!hasNumbers) {
+        newErrors.password = 'Password must contain at least one number';
+      } else if (!hasSpecialChar) {
+        newErrors.password = 'Password must contain at least one special character';
+      }
+    }
+
+    // Confirm password validation
     if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
@@ -65,11 +99,12 @@ export default function RegisterScreen() {
 
     try {
       setLoading(true);
-      await register({
+      await authService.register({
         email,
         password,
         full_name: fullName,
-        confirm_password: password
+        username: username || email.split('@')[0], // Use email prefix as username if not provided
+        confirm_password: confirmPassword
       });
 
       // Show success message and navigate to login
@@ -183,6 +218,34 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Username (Optional)</Text>
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: errors.username ? colors.error : colors.border }
+            ]}>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                value={username}
+                onChangeText={(text) => {
+                  setUsername(text);
+                  if (errors.username) {
+                    setErrors(prev => ({ ...prev, username: undefined }));
+                  }
+                }}
+                placeholder="Enter your username"
+                placeholderTextColor={colors.text + '80'}
+                autoCapitalize="none"
+                autoComplete="username"
+              />
+            </View>
+            {errors.username && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.username}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Password</Text>
             <View style={[
               styles.inputWrapper,
@@ -261,27 +324,29 @@ export default function RegisterScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.registerButton, { backgroundColor: colors.primary }]}
+            style={[
+              styles.registerButton,
+              { backgroundColor: colors.primary },
+              loading && styles.buttonDisabled
+            ]}
             onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.registerButtonText}>Sign Up</Text>
+              <Text style={styles.registerButtonText}>Create Account</Text>
             )}
           </TouchableOpacity>
 
-          <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: colors.text + '80' }]}>
-              Already have an account?{' '}
+          <TouchableOpacity
+            style={styles.loginLink}
+            onPress={() => router.replace('/(auth)/login')}
+          >
+            <Text style={[styles.loginLinkText, { color: colors.text }]}>
+              Already have an account? <Text style={{ color: colors.primary }}>Log in</Text>
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-              <Text style={[styles.footerLink, { color: colors.primary }]}>
-                Sign In
-              </Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </ThemedView>
@@ -294,14 +359,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    padding: 16,
   },
   header: {
-    marginTop: 60,
-    marginBottom: 40,
+    marginTop: 40,
+    marginBottom: 32,
   },
   backButton: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontSize: 32,
@@ -312,7 +377,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   form: {
-    gap: 20,
+    gap: 16,
   },
   inputContainer: {
     gap: 8,
@@ -337,32 +402,28 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   errorText: {
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    fontSize: 14,
   },
   registerButton: {
     height: 48,
     borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   registerButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
+  loginLink: {
+    alignItems: 'center',
+    marginTop: 16,
   },
-  footerText: {
-    fontSize: 14,
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '600',
+  loginLinkText: {
+    fontSize: 16,
   },
 }); 
