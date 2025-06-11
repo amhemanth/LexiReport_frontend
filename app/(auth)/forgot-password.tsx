@@ -65,6 +65,9 @@ export default function ForgotPasswordScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Forgot Password</Text>
+        <Text style={[styles.subtitle, { color: colors.text + '80' }]}>
+          Reset your password
+        </Text>
       </View>
 
       <View style={styles.form}>
@@ -73,28 +76,34 @@ export default function ForgotPasswordScreen() {
         </Text>
 
         <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              { 
-                backgroundColor: colors.card,
-                color: colors.text,
-                borderColor: error ? '#ff4444' : colors.border
-              }
-            ]}
-            placeholder="Email"
-            placeholderTextColor={colors.text + '80'}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+          <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+          <View style={[
+            styles.inputWrapper,
+            { 
+              borderColor: error ? '#ff4444' : colors.border,
+              backgroundColor: 'rgba(0, 0, 0, 0.02)'
+            }
+          ]}>
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter your email"
+              placeholderTextColor={colors.text + '80'}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+            />
+          </View>
           {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary },
+            loading && styles.buttonDisabled
+          ]}
           onPress={handleForgotPassword}
           disabled={loading}
         >
@@ -105,14 +114,16 @@ export default function ForgotPasswordScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.loginLink}
-          onPress={() => router.push('/login')}
-        >
-          <Text style={[styles.loginText, { color: colors.primary }]}>
-            Back to Login
+        <View style={styles.loginContainer}>
+          <Text style={[styles.loginText, { color: colors.text + '80' }]}>
+            Remember your password?{' '}
           </Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/login')}>
+            <Text style={[styles.loginLink, { color: colors.primary }]}>
+              Sign In
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -121,60 +132,105 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
+    marginTop: 48,
+    marginBottom: 32,
   },
   backButton: {
-    marginRight: 15,
+    marginBottom: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 12,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    lineHeight: 24,
   },
   form: {
-    flex: 1,
+    gap: 24,
   },
   description: {
     fontSize: 16,
-    marginBottom: 20,
     lineHeight: 24,
+    opacity: 0.7,
   },
   inputContainer: {
-    marginBottom: 20,
+    gap: 8,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
+    flex: 1,
+    height: '100%',
     fontSize: 16,
+    paddingVertical: 0,
   },
   errorText: {
     color: '#ff4444',
-    marginTop: 5,
-    fontSize: 14,
+    fontSize: 13,
+    marginTop: 4,
+    marginLeft: 4,
   },
   button: {
-    height: 50,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  loginLink: {
-    marginTop: 20,
-    alignItems: 'center',
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+    paddingVertical: 8,
   },
   loginText: {
-    fontSize: 16,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  loginLink: {
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 24,
   },
 }); 

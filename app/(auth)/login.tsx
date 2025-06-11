@@ -68,45 +68,47 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.card,
-                color: colors.text,
-                borderColor: errors.identifier ? '#ff4444' : colors.border,
-              },
-            ]}
-            placeholder="Username or Email"
-            placeholderTextColor={colors.text + '80'}
-            value={identifier}
-            onChangeText={(text) => {
-              setIdentifier(text);
-              if (errors.identifier) {
-                setErrors({ ...errors, identifier: undefined });
-              }
-              clearError();
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          <Text style={[styles.label, { color: colors.text }]}>Username or Email</Text>
+          <View style={[
+            styles.inputWrapper,
+            { 
+              borderColor: errors.identifier ? '#ff4444' : colors.border,
+              backgroundColor: 'rgba(0, 0, 0, 0.02)'
+            }
+          ]}>
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter your username or email"
+              placeholderTextColor={colors.text + '80'}
+              value={identifier}
+              onChangeText={(text) => {
+                setIdentifier(text);
+                if (errors.identifier) {
+                  setErrors({ ...errors, identifier: undefined });
+                }
+                clearError();
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
           {errors.identifier && (
             <Text style={styles.errorText}>{errors.identifier}</Text>
           )}
         </View>
 
         <View style={styles.inputContainer}>
-          <View style={styles.passwordContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+          <View style={[
+            styles.inputWrapper,
+            { 
+              borderColor: errors.password ? '#ff4444' : colors.border,
+              backgroundColor: 'rgba(0, 0, 0, 0.02)'
+            }
+          ]}>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.card,
-                  color: colors.text,
-                  borderColor: errors.password ? '#ff4444' : colors.border,
-                },
-              ]}
-              placeholder="Password"
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter your password"
               placeholderTextColor={colors.text + '80'}
               value={password}
               onChangeText={(text) => {
@@ -125,7 +127,7 @@ export default function LoginScreen() {
               <Ionicons
                 name={showPassword ? 'eye-off' : 'eye'}
                 size={24}
-                color={colors.text + '80'}
+                color={colors.text}
               />
             </TouchableOpacity>
           </View>
@@ -137,7 +139,7 @@ export default function LoginScreen() {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         <TouchableOpacity
-          style={[styles.forgotPassword, { marginBottom: 24 }]}
+          style={styles.forgotPassword}
           onPress={() => router.push('/forgot-password')}
         >
           <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
@@ -146,7 +148,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary },
+            isLoading && styles.buttonDisabled
+          ]}
           onPress={handleLogin}
           disabled={isLoading}
         >
@@ -175,74 +181,104 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
   },
   header: {
-    marginTop: 60,
-    marginBottom: 40,
+    marginTop: 48,
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
+    opacity: 0.7,
+    lineHeight: 24,
   },
   form: {
-    gap: 16,
+    gap: 24,
   },
   inputContainer: {
-    gap: 4,
+    gap: 8,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
   },
   input: {
-    height: 50,
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    flex: 1,
+    height: '100%',
     fontSize: 16,
-    borderWidth: 1,
-  },
-  passwordContainer: {
-    position: 'relative',
+    paddingVertical: 0,
   },
   eyeIcon: {
-    position: 'absolute',
-    right: 16,
-    top: 13,
+    padding: 8,
+    marginRight: -8,
   },
   errorText: {
     color: '#ff4444',
-    fontSize: 12,
+    fontSize: 13,
+    marginTop: 4,
     marginLeft: 4,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
+    paddingVertical: 8,
+    marginTop: -8,
   },
   forgotPasswordText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   button: {
-    height: 50,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 24,
+    paddingVertical: 8,
   },
   registerText: {
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 24,
   },
   registerLink: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 24,
   },
 }); 

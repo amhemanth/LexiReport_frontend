@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@hooks/useTheme';
@@ -159,195 +160,199 @@ export default function RegisterScreen() {
           </Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: errors.fullName ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={fullName}
-                onChangeText={(text) => {
-                  setFullName(text);
-                  if (errors.fullName) {
-                    setErrors(prev => ({ ...prev, fullName: undefined }));
-                  }
-                }}
-                placeholder="Enter your full name"
-                placeholderTextColor={colors.text + '80'}
-                autoCapitalize="words"
-                autoComplete="name"
-              />
-            </View>
-            {errors.fullName && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.fullName}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: errors.email ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) {
-                    setErrors(prev => ({ ...prev, email: undefined }));
-                  }
-                }}
-                placeholder="Enter your email"
-                placeholderTextColor={colors.text + '80'}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-              />
-            </View>
-            {errors.email && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.email}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Username (Optional)</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: errors.username ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={username}
-                onChangeText={(text) => {
-                  setUsername(text);
-                  if (errors.username) {
-                    setErrors(prev => ({ ...prev, username: undefined }));
-                  }
-                }}
-                placeholder="Enter your username"
-                placeholderTextColor={colors.text + '80'}
-                autoCapitalize="none"
-                autoComplete="username"
-              />
-            </View>
-            {errors.username && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.username}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: errors.password ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (errors.password) {
-                    setErrors(prev => ({ ...prev, password: undefined }));
-                  }
-                }}
-                placeholder="Enter your password"
-                placeholderTextColor={colors.text + '80'}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoComplete="password-new"
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.text}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.fullName ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={fullName}
+                  onChangeText={(text) => {
+                    setFullName(text);
+                    if (errors.fullName) {
+                      setErrors(prev => ({ ...prev, fullName: undefined }));
+                    }
+                  }}
+                  placeholder="Enter your full name"
+                  placeholderTextColor={colors.text + '80'}
+                  autoCapitalize="words"
+                  autoComplete="name"
                 />
-              </TouchableOpacity>
+              </View>
+              {errors.fullName && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.fullName}
+                </Text>
+              )}
             </View>
-            {errors.password && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.password}
-              </Text>
-            )}
-          </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: errors.confirmPassword ? colors.error : colors.border }
-            ]}>
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  if (errors.confirmPassword) {
-                    setErrors(prev => ({ ...prev, confirmPassword: undefined }));
-                  }
-                }}
-                placeholder="Confirm your password"
-                placeholderTextColor={colors.text + '80'}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-                autoComplete="password-new"
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showConfirmPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.text}
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.email ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (errors.email) {
+                      setErrors(prev => ({ ...prev, email: undefined }));
+                    }
+                  }}
+                  placeholder="Enter your email"
+                  placeholderTextColor={colors.text + '80'}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
                 />
-              </TouchableOpacity>
+              </View>
+              {errors.email && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.email}
+                </Text>
+              )}
             </View>
-            {errors.confirmPassword && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.confirmPassword}
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Username (Optional)</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.username ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={username}
+                  onChangeText={(text) => {
+                    setUsername(text);
+                    if (errors.username) {
+                      setErrors(prev => ({ ...prev, username: undefined }));
+                    }
+                  }}
+                  placeholder="Enter your username"
+                  placeholderTextColor={colors.text + '80'}
+                  autoCapitalize="none"
+                  autoComplete="username"
+                />
+              </View>
+              {errors.username && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.username}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.password ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (errors.password) {
+                      setErrors(prev => ({ ...prev, password: undefined }));
+                    }
+                  }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={colors.text + '80'}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password-new"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.password}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                { borderColor: errors.confirmPassword ? colors.error : colors.border }
+              ]}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    if (errors.confirmPassword) {
+                      setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                    }
+                  }}
+                  placeholder="Confirm your password"
+                  placeholderTextColor={colors.text + '80'}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  autoComplete="password-new"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.confirmPassword && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.confirmPassword}
+                </Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.registerButton,
+                { backgroundColor: colors.primary },
+                loading && styles.buttonDisabled
+              ]}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.registerButtonText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.loginLink}>
+              <Text style={[styles.loginLinkText, { color: colors.text }]}>
+                Already have an account?{' '}
+                <Text style={{ color: colors.primary }}>Sign In</Text>
               </Text>
-            )}
+            </View>
           </View>
-
-          <TouchableOpacity
-            style={[
-              styles.registerButton,
-              { backgroundColor: colors.primary },
-              loading && styles.buttonDisabled
-            ]}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.registerButtonText}>Create Account</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.loginLink}
-            onPress={() => router.replace('/(auth)/login')}
-          >
-            <Text style={[styles.loginLinkText, { color: colors.text }]}>
-              Already have an account? <Text style={{ color: colors.primary }}>Log in</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ThemedView>
   );
@@ -359,57 +364,89 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+    flexGrow: 1,
   },
   header: {
-    marginTop: 40,
+    marginTop: 48,
     marginBottom: 32,
+    paddingHorizontal: 24,
   },
   backButton: {
-    marginBottom: 16,
+    marginBottom: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
+    opacity: 0.7,
+    lineHeight: 24,
   },
   form: {
-    gap: 16,
+    gap: 24,
+    paddingBottom: 24,
   },
   inputContainer: {
     gap: 8,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
   },
   input: {
     flex: 1,
-    height: 48,
+    height: '100%',
     fontSize: 16,
+    paddingVertical: 0,
   },
   eyeIcon: {
     padding: 8,
+    marginRight: -8,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 13,
+    marginTop: 4,
+    marginLeft: 4,
   },
   registerButton: {
-    height: 48,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -418,12 +455,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
   loginLink: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
+    paddingVertical: 8,
   },
   loginLinkText: {
-    fontSize: 16,
+    fontSize: 15,
+    lineHeight: 24,
   },
 }); 
