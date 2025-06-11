@@ -80,10 +80,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during logout'
+        error: null
       });
       
-      // Don't throw the error since we want to proceed with local logout
+      // Silently handle the error
       console.error('Logout error:', error);
     }
   },

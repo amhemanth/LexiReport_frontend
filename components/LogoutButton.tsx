@@ -8,17 +8,9 @@ export const LogoutButton = () => {
   const router = useRouter();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      // The router.replace will be handled by the layout's useEffect
-      // when isAuthenticated changes to false
-    } catch (error) {
-      Alert.alert(
-        'Logout Error',
-        'There was an error logging out. Please try again.',
-        [{ text: 'OK' }]
-      );
-    }
+    await logout();
+    // The router.replace will be handled by the layout's useEffect
+    // when isAuthenticated changes to false
   };
 
   return (

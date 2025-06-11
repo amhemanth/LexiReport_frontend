@@ -46,17 +46,9 @@ export default function ProfileScreen() {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            try {
-              await logout();
-              // The router.replace will be handled by the layout's useEffect
-              // when isAuthenticated changes to false
-            } catch (error) {
-              Alert.alert(
-                'Logout Error',
-                'There was an error logging out. Please try again.',
-                [{ text: 'OK' }]
-              );
-            }
+            await logout();
+            // The router.replace will be handled by the layout's useEffect
+            // when isAuthenticated changes to false
           },
         },
       ],
