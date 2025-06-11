@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
-import { register } from '@/services/auth';
-import { ThemedView } from '@components/ui/ThemedView';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { register } from '@services/auth';
+import { ThemedView } from '@components/ui/ThemedView';
 
 export default function RegisterScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,25 +36,23 @@ export default function RegisterScreen() {
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
 
-    if (!fullName) {
+    if (!fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     }
 
-    if (!email) {
+    if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Please enter a valid email';
     }
 
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (!validatePassword(password)) {
-      newErrors.password = 'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (password !== confirmPassword) {
+    if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
@@ -61,24 +60,19 @@ export default function RegisterScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validatePassword = (password: string): boolean => {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const isLongEnough = password.length >= 8;
-
-    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar && isLongEnough;
-  };
-
   const handleRegister = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    setLoading(true);
     try {
-      await register({ full_name: fullName, email, password });
+      setLoading(true);
+      await register({
+        email,
+        password,
+        full_name: fullName,
+        confirm_password: password
+      });
+
+      // Show success message and navigate to login
       Alert.alert(
         'Registration Successful',
         'Your account has been created. Please log in to continue.',
@@ -91,10 +85,21 @@ export default function RegisterScreen() {
       );
     } catch (error) {
       console.error('Registration error:', error);
-      Alert.alert(
-        'Registration Failed',
-        error instanceof Error ? error.message : 'Failed to register. Please try again.'
-      );
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error instanceof Error) {
+        // Handle validation errors
+        if (error.message.includes('validation error')) {
+          const errorData = JSON.parse(error.message);
+          if (Array.isArray(errorData)) {
+            errorMessage = errorData.map(err => err.msg).join('\n');
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      Alert.alert('Registration Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -107,6 +112,12 @@ export default function RegisterScreen() {
         style={styles.content}
       >
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
           <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
           <Text style={[styles.subtitle, { color: colors.text + '80' }]}>
             Sign up to get started
@@ -288,6 +299,9 @@ const styles = StyleSheet.create({
   header: {
     marginTop: 60,
     marginBottom: 40,
+  },
+  backButton: {
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,

@@ -1,22 +1,49 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-// API Configuration
-const getEnvVar = (key: string): string => {
-  const value = Constants.expoConfig?.extra?.[key]?.trim();
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-  return value;
+// Get the local IP address for development
+const getLocalIpAddress = () => {
+    return '192.168.31.20'; // Your local network IP
 };
 
-export const API_URL = getEnvVar('apiUrl');
+// Get environment variables with defaults
+const getEnvVar = (key: string, defaultValue: string): string => {
+    const value = Constants.expoConfig?.extra?.apiUrl;
+    if (!value) {
+        if (process.env.NODE_ENV === 'development') {
+            // Use local IP for Android and localhost for iOS in development
+            if (Platform.OS === 'android') {
+                return `http://${getLocalIpAddress()}:8000/api/v1`;
+            }
+            return 'http://localhost:8000/api/v1';
+        }
+        return defaultValue;
+    }
+    return value;
+};
+
 export const API_CONFIG = {
-  // Use your computer's local IP address when testing on a physical device
-  // Use localhost when testing on an emulator
-  BASE_URL: API_URL,
-  TIMEOUT: 10000,
-  HEADERS: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
+    // Base configuration
+    BASE_URL: getEnvVar('API_URL', 'http://localhost:8000/api/v1'),
+    TIMEOUT: 10000,
+    DEBUG: process.env.NODE_ENV === 'development',
+    
+    // Headers
+    HEADERS: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    
+    // Development settings
+    RETRY_ATTEMPTS: 3,
+    RETRY_DELAY: 1000,
+    
+    // Development headers
+    ...(process.env.NODE_ENV === 'development' && {
+        HEADERS: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Development': 'true'
+        }
+    })
 }; 

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useTheme';
 import { useAuth } from '@hooks/useAuth';
+import { LogoutButton } from '@/components/LogoutButton';
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -50,6 +51,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+          headerRight: () => <LogoutButton />,
         }}
       />
     </Tabs>

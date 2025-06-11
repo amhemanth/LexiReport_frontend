@@ -1,17 +1,31 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, TextInput, Switch } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, TextInput, Switch, ActivityIndicator } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
 import { ThemedView } from '@components/ui/ThemedView';
 import { Header } from '@components/Header';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ChangePasswordModal } from '@components/ChangePasswordModal';
-import { api } from '@/services/api';
+import api from '@/services/api';
+
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  username: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  role: string;
+  permissions?: string[];
+  created_at: string;
+  updated_at: string;
+}
 
 export default function ProfileScreen() {
   const { colors, theme, setTheme } = useTheme();
-  const { logout, user, setUser } = useAuth();
+  const { user, logout, isLoading } = useAuthStore();
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -20,18 +34,41 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState(user?.email || '');
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace('/(auth)/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              // The router.replace will be handled by the layout's useEffect
+              // when isAuthenticated changes to false
+            } catch (error) {
+              Alert.alert(
+                'Logout Error',
+                'There was an error logging out. Please try again.',
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSaveProfile = async () => {
     try {
       const response = await api.put('/users/me', { full_name: fullName, email });
-      setUser(response.data);
+      // Update user in auth store
+      useAuthStore.setState({ user: response.data });
       Alert.alert('Success', 'Profile updated!');
       setShowEditProfile(false);
     } catch (error) {
@@ -65,7 +102,7 @@ export default function ProfileScreen() {
           </Text>
           <View style={styles.roleContainer}>
             <Text style={[styles.roleText, { color: colors.text + '80' }]}>
-              Role: {user?.role?.toUpperCase() || 'USER'}
+              Role: {(user as User)?.role?.toUpperCase() || 'USER'}
             </Text>
           </View>
         </View>
@@ -94,10 +131,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* Permissions Section - Only show for admin users */}
-        {user?.role === 'admin' && (
+        {(user as User)?.role === 'admin' && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Permissions</Text>
-            {user?.permissions?.map((permission, index) => (
+            {(user as User)?.permissions?.map((permission: string, index: number) => (
               <View key={index} style={[styles.permissionItem, { borderBottomColor: colors.border }]}> 
                 <Ionicons name="shield-checkmark-outline" size={24} color={colors.text} />
                 <Text style={[styles.permissionText, { color: colors.text }]}> {permission.replace(/_/g, ' ').toUpperCase()} </Text>
@@ -139,9 +176,27 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error, marginTop: 24, marginBottom: 24 }]} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#fff" />
-          <Text style={styles.logoutText}>Logout</Text>
+        <TouchableOpacity 
+          style={[
+            styles.logoutButton, 
+            { 
+              backgroundColor: colors.error,
+              marginTop: 24,
+              marginBottom: 24,
+              opacity: isLoading ? 0.7 : 1
+            }
+          ]} 
+          onPress={handleLogout}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="log-out-outline" size={24} color="#fff" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -285,15 +340,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 16,
     padding: 16,
     borderRadius: 8,
+    marginHorizontal: 16,
     gap: 8,
   },
   logoutText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   roleContainer: {
     marginTop: 8,
