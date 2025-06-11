@@ -346,10 +346,14 @@ export default function RegisterScreen() {
             </TouchableOpacity>
 
             <View style={styles.loginLink}>
-              <Text style={[styles.loginLinkText, { color: colors.text }]}>
-                Already have an account?{' '}
-                <Text style={{ color: colors.primary }}>Sign In</Text>
-              </Text>
+              <View style={styles.loginLinkContent}>
+                <Text style={[styles.loginLinkText, { color: colors.text }]}>
+                  Already have an account?
+                </Text>
+                <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+                  <Text style={[styles.signInText, { color: colors.primary }]}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -374,11 +378,11 @@ const styles = StyleSheet.create({
   },
   header: {
     marginTop: 48,
-    marginBottom: 32,
+    marginBottom: 24,
     paddingHorizontal: 24,
   },
   backButton: {
-    marginBottom: 24,
+    marginBottom: 16,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -389,7 +393,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 8,
     letterSpacing: -0.5,
   },
   subtitle: {
@@ -398,16 +402,16 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   form: {
-    gap: 24,
+    gap: 16,
     paddingBottom: 24,
   },
   inputContainer: {
-    gap: 8,
+    gap: 4,
   },
   label: {
     fontSize: 15,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -415,7 +419,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
-    height: 52,
+    height: 48,
     backgroundColor: 'rgba(0, 0, 0, 0.02)',
   },
   input: {
@@ -430,11 +434,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
     marginLeft: 4,
   },
   registerButton: {
-    height: 52,
+    height: 48,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -459,11 +463,21 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     alignItems: 'center',
-    marginTop: 24,
-    paddingVertical: 8,
+    marginTop: 16,
+    paddingVertical: 4,
+  },
+  loginLinkContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   loginLinkText: {
     fontSize: 15,
+    lineHeight: 24,
+  },
+  signInText: {
+    fontSize: 15,
+    fontWeight: '600',
     lineHeight: 24,
   },
 }); 
