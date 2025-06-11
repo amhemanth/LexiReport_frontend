@@ -30,7 +30,6 @@ export default {
   ],
   scheme: "lexireport",
   extra: {
-    apiUrl: process.env.API_URL,
-    apiBaseUrl: process.env.API_BASE_URL
+    apiUrl: process.env.API_URL
   }
 }; 

@@ -13,7 +13,7 @@ export const API_URL = getEnvVar('apiUrl');
 export const API_CONFIG = {
   // Use your computer's local IP address when testing on a physical device
   // Use localhost when testing on an emulator
-  BASE_URL: getEnvVar('apiBaseUrl'),
+  BASE_URL: API_URL,
   TIMEOUT: 10000,
   HEADERS: {
     'Content-Type': 'application/json',
