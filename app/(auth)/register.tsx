@@ -36,6 +36,33 @@ export default function RegisterScreen() {
     confirmPassword?: string;
   }>({});
 
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) {
+      return 'Password is required';
+    }
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasUpperCase) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!hasLowerCase) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!hasNumbers) {
+      return 'Password must contain at least one number';
+    }
+    if (!hasSpecialChar) {
+      return 'Password must contain at least one special character';
+    }
+    return undefined;
+  };
+
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
 
@@ -65,25 +92,9 @@ export default function RegisterScreen() {
     }
 
     // Password validation
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else {
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasLowerCase = /[a-z]/.test(password);
-      const hasNumbers = /\d/.test(password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-      if (!hasUpperCase) {
-        newErrors.password = 'Password must contain at least one uppercase letter';
-      } else if (!hasLowerCase) {
-        newErrors.password = 'Password must contain at least one lowercase letter';
-      } else if (!hasNumbers) {
-        newErrors.password = 'Password must contain at least one number';
-      } else if (!hasSpecialChar) {
-        newErrors.password = 'Password must contain at least one special character';
-      }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     // Confirm password validation
@@ -262,8 +273,11 @@ export default function RegisterScreen() {
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
-                    if (errors.password) {
-                      setErrors(prev => ({ ...prev, password: undefined }));
+                    const error = validatePassword(text);
+                    setErrors(prev => ({ ...prev, password: error }));
+                    // Clear confirm password error if passwords match
+                    if (text === confirmPassword && errors.confirmPassword) {
+                      setErrors(prev => ({ ...prev, confirmPassword: undefined }));
                     }
                   }}
                   placeholder="Enter your password"
@@ -301,7 +315,9 @@ export default function RegisterScreen() {
                   value={confirmPassword}
                   onChangeText={(text) => {
                     setConfirmPassword(text);
-                    if (errors.confirmPassword) {
+                    if (text !== password) {
+                      setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+                    } else {
                       setErrors(prev => ({ ...prev, confirmPassword: undefined }));
                     }
                   }}
