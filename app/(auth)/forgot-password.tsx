@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '@/services/auth';
 

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/authStore';
 

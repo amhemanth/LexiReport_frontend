@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, ViewProps } from 'react-native';
+import * as React from 'react';
+import { View, ViewProps, ViewStyle } from 'react-native';
 import { useTheme } from '@hooks/useTheme';
 
 interface ThemedViewProps extends ViewProps {
-  children: React.ReactNode;
+  style?: ViewStyle;
 }
 
-export function ThemedView({ style, children, ...props }: ThemedViewProps) {
+export const ThemedView: React.FC<ThemedViewProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
 
   return (
@@ -14,13 +14,10 @@ export function ThemedView({ style, children, ...props }: ThemedViewProps) {
       style={[
         {
           backgroundColor: colors.background,
-          flex: 1,
         },
         style,
       ]}
       {...props}
-    >
-      {children}
-    </View>
+    />
   );
-} 
+}; 

@@ -17,22 +17,66 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
   login: (identifier: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitialized: false,
   error: null,
+
+  initialize: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      // Check for stored auth data
+      const [accessToken, userData] = await Promise.all([
+        AsyncStorage.getItem('access_token'),
+        AsyncStorage.getItem('user_data')
+      ]);
+
+      if (accessToken && userData) {
+        const user = JSON.parse(userData);
+        set({ 
+          user,
+          isAuthenticated: true,
+          isInitialized: true,
+          isLoading: false 
+        });
+      } else {
+        set({ 
+          isInitialized: true,
+          isLoading: false 
+        });
+      }
+    } catch (error) {
+      console.error('Initialization error:', error);
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to initialize auth state',
+        isInitialized: true,
+        isLoading: false 
+      });
+    }
+  },
 
   login: async (identifier: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
       const response = await authService.login(identifier, password);
+      
+      // Store auth data
+      await Promise.all([
+        AsyncStorage.setItem('access_token', response.access_token),
+        AsyncStorage.setItem('user_data', JSON.stringify(response.user))
+      ]);
+      
       set({ 
         user: response.user,
         isAuthenticated: true,

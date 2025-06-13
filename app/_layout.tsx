@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
-import { useRouter, useSegments } from 'expo-router';
-import { Alert, View, ActivityIndicator } from 'react-native';
+import { Alert, View, ActivityIndicator, useColorScheme } from 'react-native';
+import ErrorBoundary from '../components/ErrorBoundary';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useLoadingStore } from '../store/loadingStore';
+import { colors, commonStyles } from '@/constants/styles';
 
-class ErrorBoundary extends React.Component<
+class LayoutErrorBoundary extends React.Component<
   { children: React.ReactNode; onError: (error: Error) => void },
   { hasError: boolean }
 > {
@@ -23,58 +26,116 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      return null;
+      return (
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
     }
     return this.props.children;
   }
 }
 
 export default function RootLayout() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized, initialize } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+  const colorScheme = useColorScheme();
+  const loading = useLoadingStore((state) => state.loading);
 
   useEffect(() => {
-    // Wait for the layout to be mounted
-    setIsReady(true);
+    const initializeApp = async () => {
+      try {
+        await initialize();
+        setIsReady(true);
+      } catch (error) {
+        console.error('Initialization error:', error);
+        Alert.alert(
+          'Error',
+          'Failed to initialize the app. Please try again.',
+          [{ 
+            text: 'OK',
+            onPress: () => {
+              // Retry initialization
+              initializeApp();
+            }
+          }]
+        );
+      }
+    };
+
+    initializeApp();
   }, []);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
     
     if (!isAuthenticated && !inAuthGroup) {
+      // Redirect to login if not authenticated and not in auth group
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
+      // Redirect to main app if authenticated and in auth group
+      router.replace('/(tabs)');
+    } else if (isAuthenticated && !inTabsGroup && !inAuthGroup) {
+      // Handle any other routes when authenticated
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, segments, isReady]);
+  }, [isAuthenticated, segments, isReady, isInitialized]);
 
   const handleError = (error: Error) => {
+    console.error('Layout error:', error);
     Alert.alert(
       'Error',
-      'An unexpected error occurred. Please try again.',
-      [{ text: 'OK' }]
+      'An unexpected error occurred. The app will try to recover.',
+      [{ 
+        text: 'OK',
+        onPress: () => {
+          // Attempt to recover by redirecting to a safe route
+          router.replace('/(tabs)');
+        }
+      }]
     );
-    console.error('Layout error:', error);
   };
 
-  if (!isReady) {
+  if (!isReady || !isInitialized) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <ErrorBoundary onError={handleError}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <LayoutErrorBoundary onError={handleError}>
+      {loading && <LoadingSpinner />}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background.secondary },
+          animation: 'slide_from_right',
+          gestureEnabled: true,
+          gestureDirection: 'horizontal'
+        }}
+      >
+        <Stack.Screen 
+          name="(auth)" 
+          options={{
+            animation: 'fade',
+            gestureEnabled: false
+          }}
+        />
+        <Stack.Screen 
+          name="(tabs)" 
+          options={{
+            animation: 'fade',
+            gestureEnabled: false
+          }}
+        />
       </Stack>
-    </ErrorBoundary>
+    </LayoutErrorBoundary>
   );
 }

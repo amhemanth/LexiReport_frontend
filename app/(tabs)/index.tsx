@@ -1,166 +1,158 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useTheme } from '@hooks/useTheme';
-import { ThemedView } from '@components/ui/ThemedView';
-import { Header } from '@components/Header';
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useAuth } from '@hooks/useAuth';
+import { useRouter } from 'expo-router';
+import Header from '@/components/Header';
+import { colors, spacing, typography, shadows, borderRadius, commonStyles } from '@/constants/styles';
+
+const HomeCard = ({ title, description, icon, onPress }: {
+  title: string;
+  description: string;
+  icon: string;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity style={[styles.card, commonStyles.card]} onPress={onPress}>
+    <View style={styles.cardIcon}>
+      <Ionicons name={icon as any} size={24} color={colors.primary} />
+    </View>
+    <View style={styles.cardContent}>
+      <Text style={[commonStyles.title, styles.cardTitle]}>{title}</Text>
+      <Text style={[commonStyles.text, styles.cardDescription]}>{description}</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={20} color={colors.text.secondary} />
+  </TouchableOpacity>
+);
 
 export default function HomeScreen() {
-  const { colors } = useTheme();
-  const { user } = useAuth();
+  const router = useRouter();
+
+  const features = [
+    {
+      title: 'Reports',
+      description: 'View and manage your reports',
+      icon: 'document-text',
+      route: '/(tabs)/reports'
+    },
+    {
+      title: 'Business Intelligence',
+      description: 'Access analytics and insights',
+      icon: 'analytics',
+      route: '/(tabs)/bi'
+    },
+    {
+      title: 'Offline Mode',
+      description: 'Work without internet connection',
+      icon: 'cloud-offline',
+      route: '/(tabs)/offline'
+    },
+    {
+      title: 'Voice Commands',
+      description: 'Control the app with your voice',
+      icon: 'mic',
+      route: '/(tabs)/voice'
+    }
+  ];
 
   return (
-    <ThemedView style={styles.container}>
-      <Header title="Home" />
+    <View style={[commonStyles.container]}>
+      <Header />
       <ScrollView 
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Welcome Section */}
-        <View style={styles.section}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Welcome to LexiReport
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.text + '80' }]}>
-            Your AI-powered document analysis assistant
-          </Text>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Welcome back!</Text>
+          <Text style={styles.subtitle}>What would you like to do today?</Text>
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Quick Actions
-          </Text>
+          <Text style={[commonStyles.title, styles.sectionTitle]}>Quick Actions</Text>
           <View style={styles.quickActions}>
-            <TouchableOpacity 
-              style={[styles.actionCard, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/(app)/upload')}
-            >
-              <Ionicons name="cloud-upload" size={32} color={colors.primary} />
-              <Text style={[styles.actionTitle, { color: colors.text }]}>
-                Upload Document
-              </Text>
-              <Text style={[styles.actionSubtitle, { color: colors.text + '80' }]}>
-                Analyze new documents
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.actionCard, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/(app)/reports')}
-            >
-              <Ionicons name="document-text" size={32} color={colors.primary} />
-              <Text style={[styles.actionTitle, { color: colors.text }]}>
-                View Reports
-              </Text>
-              <Text style={[styles.actionSubtitle, { color: colors.text + '80' }]}>
-                Access your analysis history
-              </Text>
-            </TouchableOpacity>
-
-            {user?.role === 'admin' && (
-              <TouchableOpacity 
-                style={[styles.actionCard, { backgroundColor: colors.card }]}
-                onPress={() => router.push('/(tabs)/user-management')}
-              >
-                <Ionicons name="people" size={32} color={colors.primary} />
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Users</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.text + '80' }]}>Admin: manage roles & permissions</Text>
-              </TouchableOpacity>
-            )}
+            {features.map((feature, index) => (
+              <HomeCard
+                key={index}
+                title={feature.title}
+                description={feature.description}
+                icon={feature.icon}
+                onPress={() => router.push(feature.route)}
+              />
+            ))}
           </View>
         </View>
 
-        {/* Recent Activity */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Recent Activity
-          </Text>
-          <View style={[styles.activityCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.emptyText, { color: colors.text + '80' }]}>
-              No recent activity
-            </Text>
-            <Text style={[styles.emptySubtext, { color: colors.text + '60' }]}>
-              Upload your first document to get started
-            </Text>
+          <Text style={[commonStyles.title, styles.sectionTitle]}>Recent Activity</Text>
+          <View style={[styles.activityCard, commonStyles.card]}>
+            <Text style={[commonStyles.text, styles.activityText]}>No recent activity</Text>
           </View>
         </View>
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  scrollViewContent: {
+    paddingBottom: spacing.xxl,
   },
-  contentContainer: {
-    padding: 24,
+  welcomeSection: {
+    padding: spacing.xl,
+    backgroundColor: colors.primary,
+    marginBottom: spacing.lg,
   },
-  section: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  welcomeText: {
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    color: colors.background.primary,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: typography.sizes.md,
+    color: colors.background.primary,
+    opacity: 0.8,
+  },
+  section: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   quickActions: {
+    gap: spacing.md,
+  },
+  card: {
     flexDirection: 'row',
-    gap: 16,
-  },
-  actionCard: {
-    flex: 1,
-    padding: 20,
-    borderRadius: 12,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 0,
   },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 4,
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.background.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
   },
-  actionSubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
+  cardContent: {
+    flex: 1,
+  },
+  cardTitle: {
+    marginBottom: spacing.xs,
+  },
+  cardDescription: {
+    color: colors.text.secondary,
   },
   activityCard: {
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    padding: spacing.lg,
   },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
+  activityText: {
+    color: colors.text.secondary,
     textAlign: 'center',
   },
-});
+}); 

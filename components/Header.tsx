@@ -1,34 +1,60 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@hooks/useTheme';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { colors, spacing, typography, borderRadius, commonStyles } from '@/constants/styles';
 
 interface HeaderProps {
-  title: string;
+  title?: string;
   showBack?: boolean;
-  rightComponent?: React.ReactNode;
+  onBackPress?: () => void;
+  showProfile?: boolean;
 }
 
-export function Header({ title, showBack = false, rightComponent }: HeaderProps) {
-  const { colors } = useTheme();
-  const statusBarHeight = StatusBar.currentHeight || 0;
+export default function Header({ title = 'LexiReports', showBack, onBackPress, showProfile = true }: HeaderProps) {
+  const router = useRouter();
+
+  const handleNotificationPress = () => {
+    router.push('/notifications');
+  };
+
+  const handleSettingsPress = () => {
+    router.push('/settings');
+  };
+
+  const handleProfilePress = () => {
+    router.push('/profile');
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.content}>
-        {showBack && (
+    <View style={styles.headerContainer}>
+      {showBack ? (
+        <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.background.primary} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.spacer} />
+      )}
+      <Text style={styles.headerTitle}>{title}</Text>
+      <View style={styles.rightIcons}>
+        <TouchableOpacity onPress={handleNotificationPress} style={styles.iconButton}>
+          <Ionicons name="notifications-outline" size={24} color={colors.background.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSettingsPress} style={styles.iconButton}>
+          <Ionicons name="settings-outline" size={24} color={colors.background.primary} />
+        </TouchableOpacity>
+        {showProfile ? (
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={styles.profileButton}
+            onPress={handleProfilePress}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
+            <Image
+              source={{ uri: 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff' }}
+              style={styles.profileImage}
+            />
           </TouchableOpacity>
-        )}
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-        {rightComponent && (
-          <View style={styles.rightComponent}>{rightComponent}</View>
+        ) : (
+          <View style={styles.spacer} />
         )}
       </View>
     </View>
@@ -36,33 +62,60 @@ export function Header({ title, showBack = false, rightComponent }: HeaderProps)
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: Platform.OS === 'ios' ? 60 : (StatusBar.currentHeight || 0) + 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primary,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 0,
+    elevation: 4,
+    shadowColor: colors.text.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    height: 48,
+  headerTitle: {
+    color: colors.background.primary,
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    flex: 1,
+    textAlign: 'center',
   },
   backButton: {
-    marginRight: 16,
-    padding: 4,
+    marginRight: spacing.sm,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    flex: 1,
+  rightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  rightComponent: {
-    marginLeft: 16,
+  iconButton: {
+    marginLeft: spacing.sm,
+    padding: spacing.xs,
+  },
+  profileButton: {
+    marginLeft: spacing.sm,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: colors.background.primary,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  spacer: {
+    width: 40,
+    height: 40,
   },
 }); 

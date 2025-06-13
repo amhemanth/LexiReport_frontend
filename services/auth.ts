@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_CONFIG } from '../config/config';
+import { API_CONFIG } from '../config/settings';
 
 // Constants for token storage
 export const TOKEN_KEY = 'access_token';
@@ -73,13 +73,19 @@ const api = axios.create({
 // Add request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    } catch (error) {
+      console.error('Request interceptor error:', error);
+      return config;
     }
-    return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -98,6 +104,8 @@ api.interceptors.response.use(
         // Get refresh token
         const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
         if (!refreshToken) {
+          // Clear tokens and throw error
+          await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY]);
           throw new Error('Session expired. Please log in again.');
         }
 
@@ -145,12 +153,36 @@ api.interceptors.response.use(
       throw new Error(error.response.data.detail);
     }
 
+    // Handle network errors
+    if (!error.response) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+
     return Promise.reject(error);
   }
 );
 
 // Auth service
 export const authService = {
+  // Initialize auth state
+  async initialize(): Promise<User | null> {
+    try {
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        return null;
+      }
+
+      // Verify token by getting current user
+      const user = await this.getCurrentUser();
+      return user;
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      // Clear invalid tokens
+      await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY]);
+      return null;
+    }
+  },
+
   // Register
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     try {

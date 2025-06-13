@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@hooks/useTheme';
 import { authService } from '@/services/auth';
 
 export default function VerifyEmailScreen() {
